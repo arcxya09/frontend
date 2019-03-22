@@ -475,15 +475,18 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
         close(connect_socket_fd);
     }
 
-    UINT32 header[2] = {0xFFFFFFFF, 0xFFFFFFFF};
+    if (n_byte > 0)
+    {
+        UINT32 header[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
 
-    fwrite(header, sizeof(UINT32), 2, raw_file);
+        fwrite(header, sizeof(UINT32), 4, raw_file);
 
-    UINT32 mark = evt_id << 28 + n_byte;
-    fwrite(&mark, sizeof(UINT32), 1, raw_file);
+        UINT32 mark[4] = {0xFFFFFFFF, (UINT32)evt_id, 0xFFFFFFFF, (UINT32)n_byte};
+        fwrite(mark, sizeof(UINT32), 4, raw_file);
 
-    fwrite(buf, sizeof(unsigned int), n_byte, raw_file);
+        fwrite(buf, sizeof(unsigned int), n_byte / 4, raw_file);
 
+    }
     /* write the event to the ring buffer */
     rb_write(n_byte, evt_id, buf);
 }
@@ -1034,7 +1037,7 @@ int cmd_message_recv() {
         else if (strcmp(buf, "get") == 0 && bufc == 2) {
             if (strcmp(arg, "status") == 0)
             {
-                sprintf(send_msg, "%d %.2f %.2f %.0f %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur);
+                sprintf(send_msg, "%d %.2f %.2f %.3f %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur);
             }
             else if (strcmp(arg, "filename") == 0)
             {
