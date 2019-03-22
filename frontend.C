@@ -188,19 +188,32 @@ int book_TTree()
     sprintf(raw_file_name, "/data/2019Lanzhou/raw/%s%05d.jraw", file , run_num);
 //sprintf(file_name, "/home/junadaq/daq/daq/data1/%s%05d.root", file , run_num);
 
+    try {
+        raw_file = fopen(raw_file_name, "wb");
+    } catch (...) {
+        fputs("raw file build error!", stderr);
+        delete raw_file;
+        raw_file = NULL;
+    }
+
 
     /* open root file */
-    root_file = new TFile(file_name, "CREATE");
-    //printf("file_name is %s\n",file_name);
-    if (root_file->IsZombie())
-    {
-        PRINT_INTERNAL = 1000000000; //> 100 s
-        printf("****** Pls type \"S\" and use \"c\" to change ...\n");
-        delete root_file;
-        root_file = NULL;
+    try {
+        root_file = new TFile(file_name, "CREATE");
+
+    } catch (...) {
+        //printf("file_name is %s\n",file_name);
+        if (root_file->IsZombie())
+        {
+            PRINT_INTERNAL = 1000000000; //> 100 s
+            printf("****** Pls type \"S\" and use \"c\" to change ...\n");
+            delete root_file;
+            root_file = NULL;
 //      exit (-1);
-        return -1;
+            return -1;
+        }
     }
+
 
     /* create TTree and branches for adc tdc*/
     tree_trig = new TTree("Trigger", "Trigger");
@@ -212,18 +225,22 @@ int book_TTree()
     tree_scal->Branch("SCAL", &evt_struc_sca, "nSCA0/I:SCA0[nSCA0]/i");
 
 
-    raw_file = fopen(raw_file_name, "wb");
-
-
     return 0;
 }
 
 void close_TTree()
 {
-    tree_trig->Write();
-    tree_scal->Write();
-    root_file->Close();
-    delete root_file;
+    if (root_file != NULL)
+    {
+        tree_trig->Write();
+        tree_scal->Write();
+        root_file->Close();
+        delete root_file;
+    }
+    if (raw_file != NULL)
+    {
+        fclose(raw_file);
+    }
 }
 
 
@@ -457,6 +474,8 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
         connect_socket_fd = -1;
         close(connect_socket_fd);
     }
+
+    fwrite(buf, sizeof(unsigned int), n_byte, raw_file);
 
     /* write the event to the ring buffer */
     rb_write(n_byte, evt_id, buf);
