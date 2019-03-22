@@ -9,7 +9,8 @@ frontend:frontend.C CAENV2718.c madc.c v977.c v830.c v1190.c cvt_V1190.c cvt_boa
 .PHONY: clean install
 
 install:
-	cp frontend ../bin
+	cp frontend $(HOME)/bin
+	cp app.py $(HOME)/bin/jcon
 
 clean::
 	rm frontend

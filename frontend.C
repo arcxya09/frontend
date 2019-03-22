@@ -475,6 +475,13 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
         close(connect_socket_fd);
     }
 
+    UINT32 header[2] = {0xFFFFFFFF, 0xFFFFFFFF};
+
+    fwrite(header, sizeof(UINT32), 2, raw_file);
+
+    UINT32 mark = evt_id << 28 + n_byte;
+    fwrite(&mark, sizeof(UINT32), 1, raw_file);
+
     fwrite(buf, sizeof(unsigned int), n_byte, raw_file);
 
     /* write the event to the ring buffer */
