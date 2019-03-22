@@ -147,8 +147,6 @@ int PRINT_INTERNAL = 1000000;
 pthread_t logger_thread_id;
 pthread_t cmd_thread_id;
 
-FILE *raw_file;
-
 /* Run status */
 int AcqRun = 0;
 int Quit;
@@ -185,7 +183,6 @@ int book_TTree()
     char file_name[100], raw_file_name[100];
 
     sprintf(file_name, "/data/2019Lanzhou/raw/%s%05d.root", file , run_num);
-    sprintf(raw_file_name, "/data/2019Lanzhou/raw/%s%05d.jraw", file , run_num);
 //sprintf(file_name, "/home/junadaq/daq/daq/data1/%s%05d.root", file , run_num);
 
 
@@ -212,7 +209,6 @@ int book_TTree()
     tree_scal->Branch("SCAL", &evt_struc_sca, "nSCA0/I:SCA0[nSCA0]/i");
 
 
-    raw_file = fopen(raw_file_name, "wb");
 
 
     return 0;
