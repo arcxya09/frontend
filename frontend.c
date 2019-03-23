@@ -16,7 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include "cjson/cJSON.h"
+#include "cJSON.h"
 
 /* vme includes */
 #include "mvmestd.h"
@@ -1258,7 +1258,7 @@ int main(int argc, char* argv[])
     shm_tdc = open_shared("/MYDAQ_TDC0", 1024 * 1024 * 10);
     shm_scl = open_shared("/MYDAQ_SCAL", 4096);
 
-    start_cmd_thread();
+    // start_cmd_thread();
 
 
     // printf("Input file name:\n");
