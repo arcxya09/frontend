@@ -29,28 +29,25 @@
 
 #define MADC_ENABLE
 #define V830_ENABLE
-#define V1190_ENABLE
-
+// #define V1190_ENABLE
 
 #define ADC_ONLY 1
 #define EVT_ID_ADC 0
 #define EVT_ID_TDC 1
 #define EVT_ID_SCL 2
-#define MAX_EVT_LEN 8192*12 /* 10 MB */
+#define MAX_EVT_LEN 8192 * 12 /* 10 MB */
 #define RB_SIZE 400000000
-
 
 // Modules
 int N_MADC = 0;
 int N_V830 = 0;
 int N_V1190 = 0;
-unsigned int* MADC_BASE;
+unsigned int *MADC_BASE;
 unsigned int V830_BASE;
 UINT16 *V1190_BASE;
 UINT16 *V1190_GEO;
 
 ///////
-
 
 unsigned int adc_buf[8192 * 8];
 /* function declears */
@@ -74,7 +71,7 @@ int init_serv_sock(int port);
 int cmd_message_recv();
 void check_cmd_sock_conn();
 
-void* cmd_thread(void *);
+void *cmd_thread(void *);
 
 void start_cmd_thread();
 
@@ -85,7 +82,8 @@ pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 /* event struct, the address of the bank_buf is set to be the tree
  * branch address*/
-struct Event_Struct {
+struct Event_Struct
+{
     int nDWORD;
     char bank_buf[MAX_EVT_LEN];
 };
@@ -99,7 +97,8 @@ struct Event_Struct evt_struc_sca;
 
 /* ring buffer, for the data transfer between father thread (main thread)
  * and data logger thread */
-struct RingBuf {
+struct RingBuf
+{
     unsigned long read_pt;
     unsigned long write_pt;
     unsigned long end_point;
@@ -147,13 +146,14 @@ int PRINT_INTERNAL = 1000000;
 pthread_t logger_thread_id;
 pthread_t cmd_thread_id;
 
-FILE *raw_file;
+// FILE *raw_file;
 
 /* Run status */
 int AcqRun = 0;
 int Quit;
 
-void ClearEventStruct(struct Event_Struct *evt) {
+void ClearEventStruct(struct Event_Struct *evt)
+{
     // printf("%d\n", evt->nDWORD);
     for (int i = 0; i < evt->nDWORD; ++i)
     {
@@ -162,8 +162,9 @@ void ClearEventStruct(struct Event_Struct *evt) {
     evt->nDWORD = 0;
 }
 
-void PrintInterface() {
-//  system("clear");
+void PrintInterface()
+{
+    //  system("clear");
     struct timeval tv_this;
 
     gettimeofday(&tv_this, NULL);
@@ -177,43 +178,46 @@ void PrintInterface() {
     printf("c ) change file name and run number\n");
     printf("q ) Quit\n");
     // if (AcqRun && (tv_this.tv_sec - tv_start.tv_sec) > 3600) {try_stop_run(); try_start_run();}
-
 }
 
 int book_TTree()
 {
     char file_name[100], raw_file_name[100];
 
-    sprintf(file_name, "/data/2019Lanzhou/raw/%s%05d.root", file , run_num);
-    sprintf(raw_file_name, "/data/2019Lanzhou/raw/%s%05d.jraw", file , run_num);
-//sprintf(file_name, "/home/junadaq/daq/daq/data1/%s%05d.root", file , run_num);
+    sprintf(file_name, "/data/2019Lanzhou/raw/%s%05d.root", file, run_num);
+    // sprintf(raw_file_name, "/data/2019Lanzhou/raw/%s%05d.jraw", file , run_num);
+    //sprintf(file_name, "/home/junadaq/daq/daq/data1/%s%05d.root", file , run_num);
 
-    try {
-        raw_file = fopen(raw_file_name, "wb");
-    } catch (...) {
-        fputs("raw file build error!", stderr);
-        delete raw_file;
-        raw_file = NULL;
-    }
-
+    // try {
+    //     raw_file = fopen(raw_file_name, "wb");
+    // } catch (...) {
+    //     fputs("raw file build error!", stderr);
+    //     delete raw_file;
+    //     raw_file = NULL;
+    // }
 
     /* open root file */
-    try {
-        root_file = new TFile(file_name, "CREATE");
-
-    } catch (...) {
-        //printf("file_name is %s\n",file_name);
-        if (root_file->IsZombie())
-        {
-            PRINT_INTERNAL = 1000000000; //> 100 s
-            printf("****** Pls type \"S\" and use \"c\" to change ...\n");
-            delete root_file;
-            root_file = NULL;
-//      exit (-1);
-            return -1;
-        }
+    root_file = new TFile(file_name, "CREATE");
+    //printf("file_name is %s\n",file_name);
+    if (root_file->IsZombie())
+    {
+        char newname[100];
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        sprintf(newname, "%s.%d-%d-%d_%d:%d:%d", file_name, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        printf("Renamed to %s\n",newname);
+        root_file = new TFile(newname, "CREATE");
     }
 
+    if (root_file->IsZombie())
+    {
+        PRINT_INTERNAL = 1000000000; //> 100 s
+        printf("****** Pls type \"S\" and use \"c\" to change ...\n");
+        delete root_file;
+        root_file = NULL;
+        exit(-1);
+        return -1;
+    }
 
     /* create TTree and branches for adc tdc*/
     tree_trig = new TTree("Trigger", "Trigger");
@@ -223,7 +227,6 @@ int book_TTree()
     /* create TTree and branches for scaler */
     tree_scal = new TTree("Scaler", "scal");
     tree_scal->Branch("SCAL", &evt_struc_sca, "nSCA0/I:SCA0[nSCA0]/i");
-
 
     return 0;
 }
@@ -237,12 +240,11 @@ void close_TTree()
         root_file->Close();
         delete root_file;
     }
-    if (raw_file != NULL)
-    {
-        fclose(raw_file);
-    }
+    // if (raw_file != NULL)
+    // {
+    //     fclose(raw_file);
+    // }
 }
-
 
 void quit()
 {
@@ -252,7 +254,6 @@ void quit()
     if (connect_socket_fd != -1)
         close(connect_socket_fd);
 }
-
 
 /* v2718 initial, return 0 if success */
 int init_v2718()
@@ -288,8 +289,9 @@ int reset_busy()
     return 0;
 }
 
-int read_vme_config() {
-    FILE* fp = fopen("vme.conf", "r");
+int read_vme_config()
+{
+    FILE *fp = fopen("vme.conf", "r");
     if (fp == NULL)
     {
         fputs("VME config file load error code 1!", stderr);
@@ -300,7 +302,7 @@ int read_vme_config() {
     int fs = ftell(fp);
     rewind(fp);
 
-    char* vmejson = (char*)malloc(sizeof(char) * fs);
+    char *vmejson = (char *)malloc(sizeof(char) * fs);
     // fread(vmejson, 1, fs, fp);
     if (fread(vmejson, 1, fs, fp) != fs)
     {
@@ -308,9 +310,9 @@ int read_vme_config() {
         exit(-1);
     }
 
-    cJSON * monitor = NULL;
+    cJSON *monitor = NULL;
     monitor = cJSON_Parse(vmejson);
-    cJSON * tmp = NULL;
+    cJSON *tmp = NULL;
 
     if (monitor == NULL)
     {
@@ -336,8 +338,8 @@ int read_vme_config() {
 #endif
 
 #ifdef V830_ENABLE
-    cJSON * v830s = NULL, *v830_base = NULL;
-    v830s  = cJSON_GetObjectItem(monitor, "v830");
+    cJSON *v830s = NULL, *v830_base = NULL;
+    v830s = cJSON_GetObjectItem(monitor, "v830");
     v830_base = cJSON_GetObjectItem(v830s, "base");
     if (v830s != NULL && v830_base != NULL)
     {
@@ -387,18 +389,21 @@ int init_frontend()
         printf("--> board initial failed! %d\n");
         return 1;
     }
-    else printf("--> mvme_open success...\n");
+    else
+        printf("--> mvme_open success...\n");
 
-
-    if (init_v2718()) {
+    if (init_v2718())
+    {
         printf("--> v2718 initial failed!\n");
         return 1;
     }
-    else printf("--> v2718 initial success ...\n");
+    else
+        printf("--> v2718 initial success ...\n");
 
 #ifdef MADC_ENABLE
     //-Init MADC32
-    if (init_madc(vme)) {
+    if (init_madc(vme))
+    {
         printf("--> madc initial failed!\n");
         return 1;
     }
@@ -407,7 +412,8 @@ int init_frontend()
 
 #ifdef V1190_ENABLE
     /* Init V1190 */
-    if (init_v1190(vme->handle)) {
+    if (init_v1190(vme->handle))
+    {
         printf("--> v1190 initial failed!\n");
         return 1;
     }
@@ -415,8 +421,9 @@ int init_frontend()
 #endif
 
 #ifdef V830_ENABLE
-//  init v830
-    if (init_v830(vme)) {
+    //  init v830
+    if (init_v830(vme))
+    {
         printf("--> v830 initial failed!\n");
         return 1;
     }
@@ -430,11 +437,12 @@ int init_frontend()
 int data_ready()
 {
     int x;
-// test:
-//  madc_isDataReady(vme, 0, &x);
-//  if (x) return 1;
-//  else goto test;
-    if (mvme_IRQWait(vme, IRQ_LEVEL, 1)) {
+    // test:
+    //  madc_isDataReady(vme, 0, &x);
+    //  if (x) return 1;
+    //  else goto test;
+    if (mvme_IRQWait(vme, IRQ_LEVEL, 1))
+    {
         // printf("--> IRQ_LEVEL created ...\n");
         return 1;
     }
@@ -447,7 +455,8 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
 {
     int *p_buf;
     char evt_name[4];
-    switch (evt_id) {
+    switch (evt_id)
+    {
     case EVT_ID_ADC:
         p_buf = (int *)shm_adc;
         memcpy(evt_name, "adc0", 4);
@@ -464,12 +473,12 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
         printf("unknown event type\n");
     }
 
-
     /* fill the shared memory and inform the analyzer */
     *p_buf = n_byte;
     memcpy(p_buf + 1, buf, n_byte);
     if ((connect_socket_fd != -1) &&
-            (-1 == send(connect_socket_fd, evt_name, 4, 0))) {
+        (-1 == send(connect_socket_fd, evt_name, 4, 0)))
+    {
         printf("error sending data\n");
         connect_socket_fd = -1;
         close(connect_socket_fd);
@@ -478,22 +487,22 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
     /* write the event to the ring buffer */
     rb_write(n_byte, evt_id, buf);
 
-    if (n_byte > 0 && raw_file != NULL)
-    {
-        try {
-            UINT32 header[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+    // if (n_byte > 0 && raw_file != NULL)
+    // {
+    //     try {
+    //         UINT32 header[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
 
-            fwrite(header, sizeof(UINT32), 4, raw_file);
+    //         fwrite(header, sizeof(UINT32), 4, raw_file);
 
-            UINT32 mark[4] = {0xFFFFFFFF, (UINT32)evt_id, 0xFFFFFFFF, (UINT32)n_byte};
-            fwrite(mark, sizeof(UINT32), 4, raw_file);
+    //         UINT32 mark[4] = {0xFFFFFFFF, (UINT32)evt_id, 0xFFFFFFFF, (UINT32)n_byte};
+    //         fwrite(mark, sizeof(UINT32), 4, raw_file);
 
-            fwrite(buf, sizeof(unsigned int), n_byte / 4, raw_file);
-        } catch (...) {
-            fputs("raw file write error!", stderr);
-        }
+    //         fwrite(buf, sizeof(unsigned int), n_byte / 4, raw_file);
+    //     } catch (...) {
+    //         fputs("raw file write error!", stderr);
+    //     }
 
-    }
+    // }
 }
 
 void vme_error_handler(const char *msg, int error_code)
@@ -506,15 +515,18 @@ void vme_error_handler(const char *msg, int error_code)
      * is always better to start a new run */
     try_stop_run();
     mvme_close(vme);
-    if (mvme_open(&vme, 0)) {
+    if (mvme_open(&vme, 0))
+    {
         printf("board initial failed!\n");
         exit(-1);
     }
-    if (init_v2718()) {
+    if (init_v2718())
+    {
         printf("v2718 initial failed!\n");
         exit(-1);
     }
-    if (try_start_run()) {
+    if (try_start_run())
+    {
         printf("error starting a new run \n");
         exit(-1);
     }
@@ -531,35 +543,36 @@ int read_madc()
     int error_code;
     unsigned int *p = adc_buf;
     static int nn = 0;
-//  goto test;
-    do {
+    //  goto test;
+    do
+    {
         error_code = madc_CMBLT_Event_read(vme, CBLT_BASE, adc_buf, &nbyte, readout_length);
-//  error_code = madc_BLT_Event_read(vme, MADC_BASE, adc_buf, &nbyte, readout_length);
-//   for (int i = 0; i < nbyte / 4; i++) printf("--> madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
+        //  error_code = madc_BLT_Event_read(vme, MADC_BASE, adc_buf, &nbyte, readout_length);
+        //   for (int i = 0; i < nbyte / 4; i++) printf("--> madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
         if (error_code != cvBusError && error_code != cvSuccess)
             return error_code;
         evt_handler(nbyte, adc_buf, EVT_ID_ADC);
         test_num += nbyte;
         i++;
         //if(i>1)
-//  printf("i=%d,nbyte=%d,readout_length=%d\n",i,nbyte,readout_length*4);
+        //  printf("i=%d,nbyte=%d,readout_length=%d\n",i,nbyte,readout_length*4);
     } while (nbyte == readout_length * 4);
     return test_num;
 
-//OBtest:
-//  /* be careful! no error checkings are done here.*/
-//  nn++;
-//  error_code = madc_get_data_len(vme, 0, &nbyte);
-//  //printf("nbytre: %d\n", nbyte);
-//  nbyte = nbyte << 1; /* assumed to be 64-bit format*/
-//  for (i = 0; i < nbyte; i++) {
-//      error_code = madc_read_dword(vme, 0, p++);
-//      //  printf("data-----> %x\n", *(p-1));
-//  }
-//  nbyte = nbyte << 2;
-//  evt_handler(nbyte, adc_buf, EVT_ID_ADC);
-//  //if (nn>=5) exit(-1);
-//  return nbyte;
+    //OBtest:
+    //  /* be careful! no error checkings are done here.*/
+    //  nn++;
+    //  error_code = madc_get_data_len(vme, 0, &nbyte);
+    //  //printf("nbytre: %d\n", nbyte);
+    //  nbyte = nbyte << 1; /* assumed to be 64-bit format*/
+    //  for (i = 0; i < nbyte; i++) {
+    //      error_code = madc_read_dword(vme, 0, p++);
+    //      //  printf("data-----> %x\n", *(p-1));
+    //  }
+    //  nbyte = nbyte << 2;
+    //  evt_handler(nbyte, adc_buf, EVT_ID_ADC);
+    //  //if (nn>=5) exit(-1);
+    //  return nbyte;
 }
 
 /* read v1190, return number of bytes read,
@@ -590,10 +603,11 @@ int read_v830()
     struct timeval tv;
 
     //-before saving data into buffer, the buffer should be cleared.
-    do {
+    do
+    {
         error_code = v830_BLT_Event_read(vme, V830_BASE, dest, &nbyte, SCALER_EVENT_LENGTH - 1);
         if (error_code != cvSuccess && error_code != cvCommError && error_code != -1) //> "-1" by znt
-            return error_code; //> when no data in buffer, cvBussError returned (znt)
+            return error_code;                                                        //> when no data in buffer, cvBussError returned (znt)
     } while (nbyte == SCALER_EVENT_LENGTH - 1);
 
     //-generate a trigger and save data into buffer
@@ -626,11 +640,11 @@ int print_stat(int *Nr0, int *Nb0)
                         (tv_this.tv_usec - tv_last.tv_usec);
     if (elipsed_micro_sec < 0)
     {
-        tv_last = tv_this;  /*because tv_last is not initialized */
+        tv_last = tv_this; /*because tv_last is not initialized */
         return 0;
     }
     //printf("%d\n", elipsed_micro_sec);
-//  if (elipsed_micro_sec >= PRINT_INTERNAL)
+    //  if (elipsed_micro_sec >= PRINT_INTERNAL)
     if (elipsed_micro_sec >= 1000000)
     {
         tv_last = tv_this;
@@ -686,9 +700,8 @@ int reset_ts()
     return 0;
 }
 
-
 /* begin of run routin, return 0 if success, return non zero if error */
-int  begin_of_run()
+int begin_of_run()
 {
     //stop all madc and mtdc
     int i;
@@ -702,9 +715,9 @@ int  begin_of_run()
     ret = madc_stop_acq(vme, MCST_BASE);
 
     for (i = 0; i < 32; i++)
-//      thres[i] = 150;
+        //      thres[i] = 150;
         thres[i] = 0;
-//  thres[31] = 0;
+    //  thres[31] = 0;
     ret |= madc_setThreshold(vme, MCST_BASE, thres);
     // for (i = 0; i < 32; i++)
     //  thres[i] = 0;
@@ -722,7 +735,6 @@ int  begin_of_run()
     ret |= v1190_data_clear();
 #endif
 
-
 #ifdef MADC_ENABLE
     //-Start MADC-32;
     ret |= madc_setFifo_reset(vme, MCST_BASE);
@@ -732,14 +744,13 @@ int  begin_of_run()
 
     ret |= reset_ts();
 
-
 #ifdef V830_ENABLE
-    ret = v830_clear_register(vme, V830_BASE);//initial the counter
+    ret = v830_clear_register(vme, V830_BASE); //initial the counter
 #endif
 
     ret = mvme_IRQEnable(vme, IRQ_LEVEL);
     //reset_busy(); //> znt
-//printf("ret=%d\n", ret);
+    //printf("ret=%d\n", ret);
 
     return ret;
 }
@@ -747,15 +758,16 @@ int  begin_of_run()
 /* keeping checking the ring buffer, if new data available, store it */
 void logger_cycle()
 {
-    do {
+    do
+    {
         /* if the read poingter equals the write pointer,
          * then there is no new data, we only *read* the pointers
          * here, so we don't have to lock the mutex */
-        if (ring_buf.read_pt == ring_buf.write_pt) {
+        if (ring_buf.read_pt == ring_buf.write_pt)
+        {
             usleep(100000);
             continue;
         }
-
 
         /* now we have new data, process the new event
          * (read and save it) */
@@ -767,7 +779,8 @@ void logger_cycle()
 /* entry point of the logger thread */
 void *logger_thread(void *)
 {
-    if (book_TTree()) {
+    if (book_TTree())
+    {
         printf("error creating TTree\n");
         logger_thread_id = -1;
         pthread_exit(NULL);
@@ -780,12 +793,12 @@ void start_logger_thread()
 {
     int ret;
     ret = pthread_create(&logger_thread_id, NULL, logger_thread, NULL);
-    if (ret) {
+    if (ret)
+    {
         perror("clone");
         exit(-1);
     }
 }
-
 
 /* start run routin, return 0 if success, non zero if error */
 int start_run()
@@ -805,7 +818,7 @@ int start_run()
     //Writing log file for time
     sprintf(logfile_name, "../log/%s%05d.log", file, run_num);
     std::ofstream LogFile(logfile_name);
-//  struct tm* stm;
+    //  struct tm* stm;
     LogFile << "Run: " << run_num << std::endl;
     LogFile << "Start time: " << tv_start.tv_sec << " second " << tv_start.tv_usec << " usecond " << std::endl;
     LogFile.close();
@@ -816,7 +829,8 @@ int start_run()
 /* try start run routin, return 0 if success, non zero if error */
 int try_start_run()
 {
-    if (AcqRun) {
+    if (AcqRun)
+    {
         printf("Acquisition already started...\n");
         return 0;
     }
@@ -835,7 +849,9 @@ void stop_logger_thread()
     {
         rb_write(0xFFFFFFFF, 0, NULL);
         pthread_join(logger_thread_id, NULL);
-    } else {
+    }
+    else
+    {
         // printf("logger stopped\n");
     }
 }
@@ -843,7 +859,7 @@ void stop_logger_thread()
 /* stop run routin, return 0 if success, non zero if error */
 int stop_run()
 {
-//    close_TTree();
+    //    close_TTree();
     PRINT_INTERNAL = 1000000; //> update every 1s
     // v1190_clear_buf();
     stop_logger_thread();
@@ -851,9 +867,9 @@ int stop_run()
     sprintf(logfile_name, "../log/%s%05d.log", file, run_num);
     std::ofstream LogFile(logfile_name, std::ios::app);
     gettimeofday(&tv_end, NULL);
-//  std::cout<<"End time: "<<tv_end.tv_sec<<" second "<<tv_end.tv_usec<<" usecond "<<std::endl;
-//  LogFile.open(logfile_name, std::ios::app);
-//  struct tm* stm;
+    //  std::cout<<"End time: "<<tv_end.tv_sec<<" second "<<tv_end.tv_usec<<" usecond "<<std::endl;
+    //  LogFile.open(logfile_name, std::ios::app);
+    //  struct tm* stm;
     LogFile << "Run: " << run_num << std::endl;
     LogFile << "End time: " << tv_end.tv_sec << " second " << tv_end.tv_usec << " usecond " << std::endl;
     LogFile.close();
@@ -864,7 +880,8 @@ int stop_run()
 int try_stop_run()
 {
 
-    if (!AcqRun) {
+    if (!AcqRun)
+    {
         printf("Acquisition already stoped...\n");
         return 0;
     }
@@ -883,7 +900,8 @@ int try_change_file_name()
     int k = 0;
     char runNum_str[50];
 
-    if (AcqRun) {
+    if (AcqRun)
+    {
         printf("Acquisition must be stoped first...\n");
         // printf("Acquisition must be stoped first...\n");
         return 0;
@@ -896,7 +914,7 @@ int try_change_file_name()
         printf("%c", file[k]);
         k++;
         fflush(stdout);
-    }   while (file[k - 1] != '\n');
+    } while (file[k - 1] != '\n');
     file[k - 1] = '\0';
     printf("File name is set as: %s \n", file);
 
@@ -917,7 +935,7 @@ int try_change_file_name()
 }
 int try_quit()
 {
-    stop_cmd_thread();
+    // stop_cmd_thread();
     Quit = 1;
     return try_stop_run();
 }
@@ -943,7 +961,8 @@ int exec_com(char c)
 int check_kb()
 {
     char c;
-    if (kbhit()) {
+    if (kbhit())
+    {
         c = getch();
         return exec_com(c);
     }
@@ -961,7 +980,8 @@ int socket_readable(int sock)
     FD_ZERO(&readfds);
     FD_SET(sock, &readfds);
     ret = select(sock + 1, &readfds, NULL, NULL, &timeout);
-    if (ret == -1) {
+    if (ret == -1)
+    {
         printf("error select syscall\n");
         return 0;
     }
@@ -969,119 +989,200 @@ int socket_readable(int sock)
         return ret;
 }
 
-int cmd_message_recv() {
-    char sbuf[100];
-    int bufc;
-    char* buf, *arg;
-    char send_msg[100];
-
-    // printf("check\n");
-    if (cmd_connect_fd != -1 && socket_readable(cmd_connect_fd))
-    {
-        recv(cmd_connect_fd, sbuf, 100, 0);
-        // printf("%s\n", buf);
-    }
-
-    buf = strtok(sbuf, " ");
-    arg = strtok(NULL, " ");
-
-
-    if (arg != NULL)
-    {
-        bufc = 2;
-    } else {
-        bufc = 1;
-    }
-
-    // printf("%s %s\n", buf, arg);
-    if (buf != NULL)
-    {
-        if (strcmp(buf, "start") == 0)
-        {
-            printf("Message: %s\n", buf);
-            exec_com('s');
-        }
-        else if (strcmp(buf, "stop") == 0)
-        {
-            printf("Message: %s\n", buf);
-            exec_com('S');
-        }
-        else if (strcmp(buf, "quit") == 0)
-        {
-            printf("Message: %s\n", buf);
-            exec_com('q');
-        }
-        else if (strcmp(buf, "init") == 0) {
-            if (!AcqRun)
-            {
-                printf("Initializing...\n");
-                mvme_close(vme);
-                init_frontend();
-            } else {
-                printf("Acquiring, unable to initialize.\n");
-            }
-        }
-        else if (strcmp(buf, "setfilename") == 0 && bufc == 2) {
-            if (!AcqRun)
-            {
-                sprintf(file, arg);
-                printf("File name is set to %s\n", file);
-            } else {
-                printf("Acquiring, unable to set file name.\n");
-            }
-        }
-        else if (strcmp(buf, "setrunnum") == 0 && bufc == 2) {
-            if (!AcqRun)
-            {
-                run_num = atoi(arg);
-                printf("Run number is set to %d\n", run_num);
-            } else {
-                printf("Acquiring, unable to set file name.\n");
-            }
-        }
-        else if (strcmp(buf, "get") == 0 && bufc == 2) {
-            if (strcmp(arg, "status") == 0)
-            {
-                sprintf(send_msg, "%d %.2f %.2f %.3f %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur);
-            }
-            else if (strcmp(arg, "filename") == 0)
-            {
-                sprintf(send_msg, "%s", file);
-            }
-            else if (strcmp(arg, "runnum") == 0)
-            {
-                sprintf(send_msg, "%d", run_num);
-            }
-            send(cmd_connect_fd, send_msg, strlen(send_msg), 0);
-        }
-        else {
-            if (strcmp(sbuf, "")) printf("Message received: %s\n", sbuf);
-        }
-    }
-
+int cmd_message_recv()
+{
 }
 
-void check_cmd_sock_conn() {
+void check_cmd_sock_conn()
+{
     if (socket_readable(cmd_socket_serv_fd))
         cmd_connect_fd = accept(cmd_socket_serv_fd, NULL, NULL);
 }
 
-void* cmd_thread(void *) {
-    while (!cmd_stop_flag) {
-        usleep(10000);
-        check_cmd_sock_conn();
-        cmd_message_recv();
+void *cmd_thread(void *)
+{
+    cmd_socket_serv_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    struct sockaddr_in serv_sockaddr;
+
+    serv_sockaddr.sin_family = AF_INET;
+    serv_sockaddr.sin_port = htons(9999);
+    serv_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind(cmd_socket_serv_fd, (struct sockaddr *)&serv_sockaddr, sizeof(serv_sockaddr)) == -1)
+    {
+        perror("bind cmd server error!");
+        return 0;
+    }
+
+    if (listen(cmd_socket_serv_fd, 128) == -1)
+    {
+        perror("listen cmd server error!");
+        return 0;
+    }
+
+    struct sockaddr_in client_addr;
+    socklen_t length = sizeof(client_addr);
+    // cmd_connect_fd = accept(cmd_socket_serv_fd, (struct sockaddr *)&client_addr, &length);
+    if (cmd_connect_fd < 0)
+    {
+        perror("cmd server connect error!");
+        return 0;
+    }
+
+    char sbuf[100];
+    int bufc, bufs = 0;
+    char *buf = NULL, *arg = NULL;
+    char send_msg[100];
+
+    fd_set readfds;
+    while (!cmd_stop_flag)
+    {
+        // if (!socket_readable(cmd_socket_serv_fd)) {
+        //     close(cmd_connect_fd);
+        //     cmd_connect_fd=accept(cmd_socket_serv_fd,(struct sockaddr*)&client_addr,&length);
+        //     if(cmd_connect_fd<0){
+        //         perror("cmd server connect error!");
+        //         continue;
+        //     }
+        // }
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 0;
+        FD_ZERO(&readfds);
+        FD_SET(cmd_socket_serv_fd, &readfds);
+        int ret = select(cmd_socket_serv_fd + 1, &readfds, NULL, NULL, NULL);
+
+        if ((cmd_connect_fd = accept(cmd_socket_serv_fd, (struct sockaddr *)&client_addr, &length)) < 0)
+        {
+            perror("accept");
+        }
+
+        // cmd_connect_fd = accept(cmd_socket_serv_fd, (struct sockaddr *)&client_addr, &length);
+        // if (cmd_connect_fd < 0)
+        // {
+        //     perror("cmd server connect error!");
+        //     return 0;
+        // }
+        FD_ZERO(&readfds);
+        FD_SET(cmd_connect_fd, &readfds);
+        FD_SET(cmd_socket_serv_fd, &readfds);
+        while (!cmd_stop_flag)
+        {
+            memset(sbuf, 0, sizeof(sbuf));
+            if ((bufs = read(cmd_connect_fd, sbuf, sizeof(sbuf))) == 0)
+            {
+                close(cmd_connect_fd);
+                break;
+            }
+
+            // if (bufs <= 0)
+            // {
+            //     continue;
+            // }
+
+            buf = strtok(sbuf, " ");
+            arg = strtok(NULL, " ");
+
+            if (arg != NULL)
+            {
+                bufc = 2;
+            }
+            else
+            {
+                bufc = 1;
+            }
+            if (bufs > 0)
+            {
+                if (strcmp(buf, "start") == 0)
+                {
+                    printf("Message: %s\n", buf);
+                    exec_com('s');
+                }
+                else if (strcmp(buf, "stop") == 0)
+                {
+                    printf("Message: %s\n", buf);
+                    exec_com('S');
+                }
+                else if (strcmp(buf, "quit") == 0)
+                {
+                    printf("Message: %s\n", buf);
+                    exec_com('q');
+                }
+                else if (strcmp(buf, "init") == 0)
+                {
+                    if (!AcqRun)
+                    {
+                        printf("Initializing...\n");
+                        mvme_close(vme);
+                        init_frontend();
+                    }
+                    else
+                    {
+                        printf("Acquiring, unable to initialize.\n");
+                    }
+                }
+                else if (strcmp(buf, "setfilename") == 0 && bufc == 2)
+                {
+                    if (!AcqRun)
+                    {
+                        sprintf(file, arg);
+                        printf("File name is set to %s\n", file);
+                    }
+                    else
+                    {
+                        printf("Acquiring, unable to set file name.\n");
+                    }
+                }
+                else if (strcmp(buf, "setrunnum") == 0 && bufc == 2)
+                {
+                    if (!AcqRun)
+                    {
+                        run_num = atoi(arg);
+                        printf("Run number is set to %d\n", run_num);
+                    }
+                    else
+                    {
+                        printf("Acquiring, unable to set file name.\n");
+                    }
+                }
+                else if (strcmp(buf, "get") == 0 && bufc == 2)
+                {
+
+                    if (strcmp(arg, "status") == 0)
+                    {
+                        sprintf(send_msg, "%d %.2f %.2f %.3f %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur);
+                    }
+                    else if (strcmp(arg, "filename") == 0)
+                    {
+                        sprintf(send_msg, "%s", file);
+                    }
+                    else if (strcmp(arg, "runnum") == 0)
+                    {
+                        sprintf(send_msg, "%d", run_num);
+                    }
+                    send(cmd_connect_fd, send_msg, strlen(send_msg), 0);
+                }
+                else
+                {
+                    if (strcmp(sbuf, ""))
+                        printf("Message received: %s\n", sbuf);
+                }
+            }
+        }
     }
 }
 
-void start_cmd_thread() {
+void start_cmd_thread()
+{
     int ret;
 
-    cmd_socket_serv_fd = init_serv_sock(9999);
-    cmd_connect_fd = -1;
+    // cmd_socket_serv_fd = init_serv_sock(9999);
+    // cmd_connect_fd = -1;
 
     ret = pthread_create(&cmd_thread_id, NULL, cmd_thread, NULL);
-    if (ret) {
+    if (ret)
+    {
         perror("clone");
         exit(-1);
     }
@@ -1094,7 +1195,6 @@ void stop_cmd_thread()
     cmd_stop_flag = 1;
     pthread_join(cmd_thread_id, NULL);
 }
-
 
 void check_sock_conn()
 {
@@ -1112,17 +1212,18 @@ void loop_cycle()
     AcqRun = Nr = Nb = Quit = 0;
     gettimeofday(&tv_last, NULL);
     PrintInterface();
-    while (!Quit) {
-begin_loop:
+    while (!Quit)
+    {
+    begin_loop:
 
         gettimeofday(&tv_this, NULL);
-        elipsed_micro_sec = (tv_this.tv_sec - tv_last.tv_sec) * 1000000
-                            + (tv_this.tv_usec - tv_last.tv_usec);
+        elipsed_micro_sec = (tv_this.tv_sec - tv_last.tv_sec) * 1000000 + (tv_this.tv_usec - tv_last.tv_usec);
         if (elipsed_micro_sec >= 1000000)
         {
             tv_last = tv_this;
             /* Check keyboard */
-            if (check_kb()) {
+            if (check_kb())
+            {
                 printf("error check kb\n");
                 exit(-1);
             }
@@ -1134,17 +1235,21 @@ begin_loop:
         }
 
         /* Print interface */
-        if (!AcqRun) {
-            if (!init_flag && verbose) PrintInterface();
+        if (!AcqRun)
+        {
+            if (!init_flag && verbose)
+                PrintInterface();
             Sleep(1);
             continue;
         }
 
-        if (data_ready()) {
+        if (data_ready())
+        {
             mvme_IRQDisable(vme, IRQ_LEVEL);
 #ifdef MADC_ENABLE
             ret = read_madc();
-            if (ret < 0) {
+            if (ret < 0)
+            {
                 vme_error_handler("madc blt read error", ret);
                 goto begin_loop;
             }
@@ -1155,31 +1260,31 @@ begin_loop:
 
 #ifdef V1190_ENABLE
             ret = read_v1190();
-            if (ret < 0) {
+            if (ret < 0)
+            {
                 vme_error_handler("v1190 blt read error", ret);
                 goto begin_loop;
             }
             Nb += ret;
 #endif
 
-
             mvme_IRQEnable(vme, IRQ_LEVEL);
             Nr++;
         }
         //ret = reset_busy(); // ~ 10us
 
-
         //-read scaler
 #ifdef V830_ENABLE
-        if (elipsed_micro_sec >= 1000000) {
+        if (elipsed_micro_sec >= 1000000)
+        {
             ret = read_v830();
-            if (ret < 0) {
+            if (ret < 0)
+            {
                 vme_error_handler("v830 blt read error", ret);
                 goto begin_loop;
             }
             Nb += ret;
         }
-
 
         // if (elipsed_micro_sec / 100000 > Nsca) {
         //     ret = read_v830();
@@ -1194,16 +1299,15 @@ begin_loop:
 #endif
 
         // printf("%d\n", Nr);
-        if ((elipsed_micro_sec >= 1000000)) {
+        if ((elipsed_micro_sec >= 1000000))
+        {
             print_stat(&Nr, &Nb);
             Nr = Nb = 0;
         }
 
-//      usleep(100);
+        //      usleep(100);
     }
-
 }
-
 
 int init_serv_sock(int port)
 {
@@ -1213,7 +1317,8 @@ int init_serv_sock(int port)
     int on = 1;
 
     listen_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_sock_fd == -1) {
+    if (listen_sock_fd == -1)
+    {
         printf("error creating socket\n");
         exit(-1);
     }
@@ -1227,16 +1332,18 @@ int init_serv_sock(int port)
     servaddr.sin_port = htons(port);
 
     /* Bind */
-    ret = bind(listen_sock_fd, (struct sockaddr*)&servaddr,
+    ret = bind(listen_sock_fd, (struct sockaddr *)&servaddr,
                sizeof(servaddr));
-    if (ret == -1) {
+    if (ret == -1)
+    {
         printf("error binding");
         exit(-1);
     }
 
     /* Listen */
     ret = listen(listen_sock_fd, 128);
-    if (ret == -1) {
+    if (ret == -1)
+    {
         printf("error listening\n");
         exit(-1);
     }
@@ -1244,13 +1351,13 @@ int init_serv_sock(int port)
     return listen_sock_fd;
 }
 
-
 void *open_shared(const char *name, int len)
 {
     int shm_id;
     void *addr;
     shm_id = shm_open(name, O_RDWR | O_CREAT, 0644);
-    if (shm_id == -1) {
+    if (shm_id == -1)
+    {
         printf("open shared memory error\n");
         return NULL;
     }
@@ -1262,7 +1369,6 @@ void *open_shared(const char *name, int len)
         return addr;
 }
 
-
 static void sig_handler(int signum)
 {
     /* stop the current run to save data */
@@ -1271,7 +1377,7 @@ static void sig_handler(int signum)
     exit(-1);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     struct sigaction sa;
 
@@ -1284,12 +1390,12 @@ int main(int argc, char* argv[])
 
     /* Init frontend */
     printf("--> Init...\n");
-    if (init_frontend()) return -1;
+    if (init_frontend())
+        return -1;
     printf("--> Finished...\n");
 
     listen_sock_fd = init_serv_sock(9093);
     connect_socket_fd = -1;
-
 
     /* Create shared memory object */
     shm_adc = open_shared("/MYDAQ_ADC0", 1024 * 1024 * 10);
@@ -1297,7 +1403,6 @@ int main(int argc, char* argv[])
     shm_scl = open_shared("/MYDAQ_SCAL", 4096);
 
     start_cmd_thread();
-
 
     // printf("Input file name:\n");
     // scanf("%s", file);
@@ -1308,7 +1413,6 @@ int main(int argc, char* argv[])
 
     sprintf(file, "test");
     run_num = 0;
-
 
     // // printf("File name: %s\n", file);
     // printf("Run number: %d\n", run_num);
@@ -1381,7 +1485,8 @@ void rb_proc_evt()
     pthread_mutex_lock(&mutex1);
     /* first, read the data length */
     data_len = rb_read_dword();
-    if (data_len == 0xFFFFFFFF) {
+    if (data_len == 0xFFFFFFFF)
+    {
         /* this abnormally large event length indidates that the
          * father thread requires this logger thread should quit*/
         close_TTree();
@@ -1394,10 +1499,10 @@ void rb_proc_evt()
     /* then, read the event id */
     evt_id = rb_read_dword();
 
-
     /* lastly, read event data */
     p_nDWORD = NULL;
-    switch (evt_id) {
+    switch (evt_id)
+    {
     case EVT_ID_ADC:
         pDWORD = (unsigned int *)evt_struc_adc.bank_buf;
         p_nDWORD = &evt_struc_adc.nDWORD;
@@ -1410,14 +1515,15 @@ void rb_proc_evt()
         pDWORD = (unsigned int *)evt_struc_sca.bank_buf;
         p_nDWORD = &evt_struc_sca.nDWORD;
     }
-//  printf("->EVTID: %d\n", evt_id);
-    for (i = 0; i < data_len / 4; i++) {
+    //  printf("->EVTID: %d\n", evt_id);
+    for (i = 0; i < data_len / 4; i++)
+    {
         pDWORD[i] = rb_read_dword();
-//      printf("----> %x\n",pDWORD[i]);
-//      fflush(stdout);
+        //      printf("----> %x\n",pDWORD[i]);
+        //      fflush(stdout);
     }
     cnt++;
-//  if(cnt>1) exit(0);
+    //  if(cnt>1) exit(0);
     if (p_nDWORD)
         *p_nDWORD = data_len / 4;
 
@@ -1427,7 +1533,8 @@ void rb_proc_evt()
     pthread_mutex_unlock(&mutex1);
 
     /* we fill the tree only if the event id is scaler or tdc (not adc)*/
-    switch (evt_id) {
+    switch (evt_id)
+    {
     case EVT_ID_ADC:
         tree_trig->Fill();
         break;
@@ -1446,8 +1553,8 @@ int rb_check_space(unsigned long n_byte)
         remain_size = ring_buf.write_pt - ring_buf.read_pt + RB_SIZE;
     else
         remain_size = ring_buf.read_pt - ring_buf.write_pt;
-//printf("remain_size: %d\n", remain_size);
-//printf("nbyte: %d\n", n_byte);
+    //printf("remain_size: %d\n", remain_size);
+    //printf("nbyte: %d\n", n_byte);
 
     return remain_size <= (n_byte + 100);
 }
@@ -1478,7 +1585,8 @@ void do_rb_write(unsigned int n_byte, int evt_id, unsigned int *buf)
     /* if the event length (n_byte) is abnormally large, this is not
      * a real event, but only a signal for the daughter thread to quit,
      * so we don't need to write the event id and data */
-    if (n_byte == 0xFFFFFFFF) return;
+    if (n_byte == 0xFFFFFFFF)
+        return;
 
     /* write event id */
     *((int *)(ring_buf.write_pt)) = evt_id;
@@ -1486,7 +1594,8 @@ void do_rb_write(unsigned int n_byte, int evt_id, unsigned int *buf)
     rb_round_write_pt();
 
     /* write data */
-    for (i = 0; i < n_byte / 4; i++) {
+    for (i = 0; i < n_byte / 4; i++)
+    {
         *((unsigned int *)(ring_buf.write_pt)) = buf[i];
         ring_buf.write_pt += 4;
         rb_round_write_pt();
@@ -1504,7 +1613,8 @@ void rb_write(unsigned int n_byte, int evt_id, unsigned int *buf)
         n_byte1 = n_byte;
 loop:
     pthread_mutex_lock(&mutex1);
-    if (rb_check_space(n_byte1)) {
+    if (rb_check_space(n_byte1))
+    {
         pthread_mutex_unlock(&mutex1);
         usleep(1);
         goto loop;
@@ -1512,7 +1622,6 @@ loop:
     do_rb_write(n_byte, evt_id, buf);
     pthread_mutex_unlock(&mutex1);
 }
-
 
 /* input mode operation functions, it is better to put them in a seprate file,
  * here we just put them at the end of the current file, which is, again, a
@@ -1543,8 +1652,9 @@ void raw(void)
     init = 1;
 }
 
-void Sleep(int t) {
-    usleep( t * 1000000 );
+void Sleep(int t)
+{
+    usleep(t * 1000000);
 }
 
 int getch(void)
@@ -1556,9 +1666,7 @@ int getch(void)
     if (read(0, &temp, 1) != 1)
         return 0;
     return temp;
-
 }
-
 
 int kbhit()
 {

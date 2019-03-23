@@ -113,6 +113,7 @@ class Application(Frame):
                     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.s.connect((self.ip.get(), self.port.get()))
                     self.update()
+                    print 'test'
                 except Exception as e:
                     print("Connection refused 3")
                     return -1
@@ -243,7 +244,7 @@ class Application(Frame):
         except Exception as e:
             self.connect_status.set('disconnect')
             return
-        
+    
 
     def set(self, com, arg):
         try:
@@ -259,6 +260,7 @@ class Application(Frame):
 
     def update(self):
         self.get('status')
+        print 'test'
         self.get('filename')
         self.get('runnum')
 
