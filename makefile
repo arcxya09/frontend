@@ -9,8 +9,8 @@ frontend:frontend.C src/*.c
 .PHONY: clean install
 
 install:
-	cp frontend $(HOME)/bin
-	cp app.py $(HOME)/bin/jcon
+	cp frontend $(HOME)/dev/bin
+	cp app.py $(HOME)/dev/bin/jcon
 
 clean::
 	rm frontend
