@@ -16,7 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-#include "cjson/cJSON.h"
+#include "cJSON.h"
 
 /* vme includes */
 #include "mvmestd.h"
@@ -475,20 +475,25 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
         close(connect_socket_fd);
     }
 
-    if (n_byte > 0)
-    {
-        UINT32 header[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
-
-        fwrite(header, sizeof(UINT32), 4, raw_file);
-
-        UINT32 mark[4] = {0xFFFFFFFF, (UINT32)evt_id, 0xFFFFFFFF, (UINT32)n_byte};
-        fwrite(mark, sizeof(UINT32), 4, raw_file);
-
-        fwrite(buf, sizeof(unsigned int), n_byte / 4, raw_file);
-
-    }
     /* write the event to the ring buffer */
     rb_write(n_byte, evt_id, buf);
+
+    if (n_byte > 0 && raw_file != NULL)
+    {
+        try {
+            UINT32 header[4] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+
+            fwrite(header, sizeof(UINT32), 4, raw_file);
+
+            UINT32 mark[4] = {0xFFFFFFFF, (UINT32)evt_id, 0xFFFFFFFF, (UINT32)n_byte};
+            fwrite(mark, sizeof(UINT32), 4, raw_file);
+
+            fwrite(buf, sizeof(unsigned int), n_byte / 4, raw_file);
+        } catch (...) {
+            fputs("raw file write error!", stderr);
+        }
+
+    }
 }
 
 void vme_error_handler(const char *msg, int error_code)
