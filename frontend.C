@@ -291,7 +291,7 @@ int reset_busy()
 
 int read_vme_config()
 {
-    FILE *fp = fopen("vme.conf", "r");
+    FILE *fp = fopen("/home/rnb/daq/daq/frontend/vme.conf", "r");
     if (fp == NULL)
     {
         fputs("VME config file load error code 1!", stderr);
@@ -996,6 +996,7 @@ int cmd_message_recv()
 void check_cmd_sock_conn()
 {
     if (socket_readable(cmd_socket_serv_fd))
+
         cmd_connect_fd = accept(cmd_socket_serv_fd, NULL, NULL);
 }
 

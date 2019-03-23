@@ -113,7 +113,6 @@ class Application(Frame):
                     self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.s.connect((self.ip.get(), self.port.get()))
                     self.update()
-                    print 'test'
                 except Exception as e:
                     print("Connection refused 3")
                     return -1
