@@ -1,0 +1,793 @@
+--> Init...
+--> VME config file loaded: 4 MADC, 0 V1190, 1 V830 found.
+--> mvme_open success...
+--> v2718 initial success ...
+--> MADC-32 Initializing...
+----> MADC-32 0x0001 Initializing...----> MADC-32 0x0001 Initialized.   
+----> MADC-32 0x0002 Initializing...----> MADC-32 0x0002 Initial failed, try 4.   
+----> MADC-32 0x0002 Initializing...----> MADC-32 0x0002 Initialized.   
+----> MADC-32 0x0003 Initializing...----> MADC-32 0x0003 Initialized.   
+----> MADC-32 0x0004 Initializing...----> MADC-32 0x0004 Initialized.   
+--> MADC-32 Initialized.
+--> v830 Initializing...
+--> v830 Initialized.
+--> Finished...
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 52 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 52 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 53 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 54 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 55 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 56 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 57 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 58 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890222 min 59 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 0 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 1 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 2 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 3 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 4 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 5 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 6 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 7 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 8 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 9 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 10 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 11 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 12 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 13 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 14 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 15 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 16 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 17 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 18 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 19 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 20 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 21 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 22 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 23 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 24 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 25 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 26 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 27 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 28 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 29 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 30 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 31 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 32 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 33 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 34 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 35 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 36 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 37 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 38 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 39 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 40 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 41 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 42 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 43 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 44 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 45 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 46 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 47 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 48 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 49 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 50 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 51 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 52 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 53 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 54 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 55 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 56 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 57 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 58 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890223 min 59 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 0 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 1 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 2 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 3 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 4 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 5 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 6 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 7 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 8 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 9 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 10 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 11 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 12 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 13 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 14 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 15 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 16 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 17 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 18 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 19 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 20 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 21 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 22 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 23 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 24 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 25 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 26 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 27 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 28 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 29 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 30 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 31 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 32 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 33 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 34 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 35 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 36 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 37 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 38 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 39 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 40 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+
+
+ STATUS: STOPED	  FileName:test	  run: 00000	25890224 min 41 s since started
+s ) Start acquisition
+S ) Stop acquisition
+c ) change file name and run number
+q ) Quit
+Acquisition already stoped...
+sig handler called

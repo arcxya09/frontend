@@ -56,6 +56,7 @@ int try_start_run();
 int rb_check_space(unsigned long n_byte);
 void rb_round_write_pt();
 void rb_round_read_pt();
+int socket_readable(int sock);
 void do_rb_write(unsigned int n_byte, int evt_id, unsigned int *buf);
 void rb_write(unsigned int n_byte, int evt_id, unsigned int *buf);
 void cooked(void);
@@ -122,7 +123,7 @@ int listen_sock_fd, connect_socket_fd;
 int cmd_socket_serv_fd, cmd_connect_fd;
 int cmd_stop_flag = 0;
 int init_flag = 0;
-int verbose = 1;
+int verbose = 0;
 
 double AcqRate = 0;
 double DataRate = 0;
@@ -168,16 +169,19 @@ void PrintInterface()
     struct timeval tv_this;
 
     gettimeofday(&tv_this, NULL);
-    printf("\n\n STATUS: %s\t  FileName:%s\t  run: %05d\t",
-           AcqRun ? "STARTED" : "STOPED", file, run_num);
-    printf("%d min %d s since started\n",
-           (int)((tv_this.tv_sec - tv_start.tv_sec) / 60), (int)((tv_this.tv_sec - tv_start.tv_sec) % 60));
-    AcqDur = tv_this.tv_sec - tv_start.tv_sec;
-    printf("s ) Start acquisition\n");
-    printf("S ) Stop acquisition\n");
-    printf("c ) change file name and run number\n");
-    printf("q ) Quit\n");
-    // if (AcqRun && (tv_this.tv_sec - tv_start.tv_sec) > 3600) {try_stop_run(); try_start_run();}
+    if (verbose == 1)
+    {
+        printf("\n\n STATUS: %s\t  FileName:%s\t  run: %05d\t",
+               AcqRun ? "STARTED" : "STOPED", file, run_num);
+        printf("%d min %d s since started\n",
+               (int)((tv_this.tv_sec - tv_start.tv_sec) / 60), (int)((tv_this.tv_sec - tv_start.tv_sec) % 60));
+        AcqDur = tv_this.tv_sec - tv_start.tv_sec;
+        printf("s ) Start acquisition\n");
+        printf("S ) Stop acquisition\n");
+        printf("c ) change file name and run number\n");
+        printf("q ) Quit\n");
+        // if (AcqRun && (tv_this.tv_sec - tv_start.tv_sec) > 3600) {try_stop_run(); try_start_run();}
+    }
 }
 
 int book_TTree()
@@ -205,7 +209,8 @@ int book_TTree()
         time_t t = time(NULL);
         struct tm tm = *localtime(&t);
         sprintf(newname, "%s.%d-%d-%d_%d:%d:%d", file_name, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-        printf("Renamed to %s\n",newname);
+        printf("--> File %s existed.\n", file_name);
+        printf("--> Renamed to %s", newname);
         root_file = new TFile(newname, "CREATE");
     }
 
@@ -476,12 +481,28 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
     /* fill the shared memory and inform the analyzer */
     *p_buf = n_byte;
     memcpy(p_buf + 1, buf, n_byte);
-    if ((connect_socket_fd != -1) &&
-        (-1 == send(connect_socket_fd, evt_name, 4, 0)))
+
+    // check_sock_conn();
+    if ((connect_socket_fd != -1))
     {
-        printf("error sending data\n");
-        connect_socket_fd = -1;
-        close(connect_socket_fd);
+        try
+        {
+            if (!socket_readable(connect_socket_fd))
+            {
+                send(connect_socket_fd, evt_name, 4, 0);
+            }
+            else
+            {
+                close(connect_socket_fd);
+                connect_socket_fd = -1;
+            }
+        }
+        catch (...)
+        {
+            printf("error sending data\n");
+            connect_socket_fd = -1;
+            close(connect_socket_fd);
+        }
     }
 
     /* write the event to the ring buffer */
@@ -831,13 +852,14 @@ int try_start_run()
 {
     if (AcqRun)
     {
-        printf("Acquisition already started...\n");
+        printf("--> Acquisition already started...\n");
         return 0;
     }
     if (start_run())
         return -1;
 
     AcqRun = 1;
+    printf("--> Acquisition started.\n");
     return 0;
 }
 
@@ -852,7 +874,7 @@ void stop_logger_thread()
     }
     else
     {
-        // printf("logger stopped\n");
+        printf("--> logger stopped\n");
     }
 }
 
@@ -882,7 +904,7 @@ int try_stop_run()
 
     if (!AcqRun)
     {
-        printf("Acquisition already stoped...\n");
+        printf("--> Acquisition already stoped...\n");
         return 0;
     }
     // printf("Try stopping...\n");
@@ -891,6 +913,8 @@ int try_stop_run()
 
     AcqRun = 0;
     // printf("Stopped. AcqRun status: %d\n", AcqRun);
+
+    printf("--> Acquisition stopped.\n");
     return 0;
 }
 
@@ -902,7 +926,7 @@ int try_change_file_name()
 
     if (AcqRun)
     {
-        printf("Acquisition must be stoped first...\n");
+        printf("--> Acquisition must be stoped first...\n");
         // printf("Acquisition must be stoped first...\n");
         return 0;
     }
@@ -989,14 +1013,9 @@ int socket_readable(int sock)
         return ret;
 }
 
-int cmd_message_recv()
-{
-}
-
 void check_cmd_sock_conn()
 {
     if (socket_readable(cmd_socket_serv_fd))
-
         cmd_connect_fd = accept(cmd_socket_serv_fd, NULL, NULL);
 }
 
@@ -1097,30 +1116,30 @@ void *cmd_thread(void *)
             {
                 if (strcmp(buf, "start") == 0)
                 {
-                    printf("Message: %s\n", buf);
+                    // printf("--> Message: %s\n", buf);
                     exec_com('s');
                 }
                 else if (strcmp(buf, "stop") == 0)
                 {
-                    printf("Message: %s\n", buf);
+                    // printf("Message: %s\n", buf);
                     exec_com('S');
                 }
                 else if (strcmp(buf, "quit") == 0)
                 {
-                    printf("Message: %s\n", buf);
+                    // printf("Message: %s\n", buf);
                     exec_com('q');
                 }
                 else if (strcmp(buf, "init") == 0)
                 {
                     if (!AcqRun)
                     {
-                        printf("Initializing...\n");
+                        printf("--> Initializing...\n");
                         mvme_close(vme);
                         init_frontend();
                     }
                     else
                     {
-                        printf("Acquiring, unable to initialize.\n");
+                        printf("--> Acquiring, unable to initialize.\n");
                     }
                 }
                 else if (strcmp(buf, "setfilename") == 0 && bufc == 2)
@@ -1128,11 +1147,11 @@ void *cmd_thread(void *)
                     if (!AcqRun)
                     {
                         sprintf(file, arg);
-                        printf("File name is set to %s\n", file);
+                        printf("--> File name is set to %s\n", file);
                     }
                     else
                     {
-                        printf("Acquiring, unable to set file name.\n");
+                        printf("--> Acquiring, unable to set file name.\n");
                     }
                 }
                 else if (strcmp(buf, "setrunnum") == 0 && bufc == 2)
@@ -1140,11 +1159,11 @@ void *cmd_thread(void *)
                     if (!AcqRun)
                     {
                         run_num = atoi(arg);
-                        printf("Run number is set to %d\n", run_num);
+                        printf("--> Run number is set to %d\n", run_num);
                     }
                     else
                     {
-                        printf("Acquiring, unable to set file name.\n");
+                        printf("--> Acquiring, unable to set file name.\n");
                     }
                 }
                 else if (strcmp(buf, "get") == 0 && bufc == 2)
@@ -1164,11 +1183,11 @@ void *cmd_thread(void *)
                     }
                     send(cmd_connect_fd, send_msg, strlen(send_msg), 0);
                 }
-                else
-                {
-                    if (strcmp(sbuf, ""))
-                        printf("Message received: %s\n", sbuf);
-                }
+                // else
+                // {
+                //     if (strcmp(sbuf, ""))
+                //         printf("--> Message received: %s\n", sbuf);
+                // }
             }
         }
     }
@@ -1215,7 +1234,7 @@ void loop_cycle()
     PrintInterface();
     while (!Quit)
     {
-    begin_loop:
+        fflush(stdout);
 
         gettimeofday(&tv_this, NULL);
         elipsed_micro_sec = (tv_this.tv_sec - tv_last.tv_sec) * 1000000 + (tv_this.tv_usec - tv_last.tv_usec);
@@ -1230,7 +1249,15 @@ void loop_cycle()
             }
 
             /* Check incoming connection requests */
-            check_sock_conn();
+            try
+            {
+                check_sock_conn();
+            }
+            catch (...)
+            {
+                puts("exception");
+            }
+
             // check_cmd_sock_conn();
             // cmd_message_recv();
         }
@@ -1252,7 +1279,7 @@ void loop_cycle()
             if (ret < 0)
             {
                 vme_error_handler("madc blt read error", ret);
-                goto begin_loop;
+                continue;
             }
             Nb += ret;
             // if (AcqRate > 100000) madc_readfifo_reset(vme, 0);
@@ -1282,21 +1309,25 @@ void loop_cycle()
             if (ret < 0)
             {
                 vme_error_handler("v830 blt read error", ret);
-                goto begin_loop;
+                continue;
             }
             Nb += ret;
         }
 
-        // if (elipsed_micro_sec / 100000 > Nsca) {
+        // if (elipsed_micro_sec / 100000 > Nsca)
+        // {
         //     ret = read_v830();
-        //     if (ret < 0) {
+        //     printf("%d\n", Nb_sum);
+        //     if (ret < 0)
+        //     {
         //         vme_error_handler("v830 blt read error", ret);
         //         goto begin_loop;
         //     }
         //     Nb += ret;
         //     Nsca++;
         // }
-        // if (elipsed_micro_sec >= 1000000) Nsca = 0;
+        // if (elipsed_micro_sec >= 1000000)
+        //     Nsca = 0;
 #endif
 
         // printf("%d\n", Nr);
@@ -1306,7 +1337,7 @@ void loop_cycle()
             Nr = Nb = 0;
         }
 
-        //      usleep(100);
+        // usleep(100);
     }
 }
 
@@ -1380,6 +1411,10 @@ static void sig_handler(int signum)
 
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler);
+    signal(SIGKILL, sig_handler);
+
     struct sigaction sa;
 
     /* Install signal handler for SIGSEGV */
@@ -1388,6 +1423,9 @@ int main(int argc, char *argv[])
     sa.sa_flags = 0;
     if (sigaction(SIGSEGV, &sa, NULL) == -1)
         perror("sigaction");
+
+    signal(SIGINT, sig_handler);
+    signal(SIGTERM, sig_handler);
 
     /* Init frontend */
     printf("--> Init...\n");

@@ -3,7 +3,12 @@
 from Tkinter import *
 import socket
 import time
-from string import atoi,atof
+from string import atoi, atof
+from subprocess import Popen, PIPE
+import select
+import signal
+import re
+
 # from cmd import Cmd
 # from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from matplotlib.figure import Figure
@@ -22,9 +27,26 @@ class Application(Frame):
         self.run_status_panel_init()
         # self.figure_init()
         self.run_control_panel_init()
+        self.analyze_panel_init()
+        self.output_panel_init()
         self.gui_pack()
         self.autoupdate()
         self.supervisor()
+
+    def destroy(self):
+        # print 'close'
+
+        if self.roody_thread != None and self.roody_thread.poll() == None:
+            self.roody_thread.terminate()
+
+        if self.online_thread != None and self.online_thread.poll() == None:
+            self.online_thread.terminate()
+
+        if self.frontend_thread != None and self.frontend_thread.poll() == None:
+            self.frontend_thread.terminate()
+        # Frame.destroy()
+        Frame.destroy(self)
+        # self.frontend_thread.terminate()
 
     def var_init(self):
         self.port = IntVar(value=9999)
@@ -36,7 +58,7 @@ class Application(Frame):
 
         self.DataRate = 0.0
         self.AcqRate = 0.0
-        self.AcqRun=0
+        self.AcqRun = 0
         self.FileSize = 0.0
 
         self.runnum_status = StringVar(value='Run Number: ---')
@@ -47,48 +69,64 @@ class Application(Frame):
         self.acq_rate_status = StringVar(value='AcqRate: --- kHz')
         self.file_size_status = StringVar(value='FileSize: --- MB')
 
-        self.file_size_checkbutton=IntVar(value=1)
+        self.file_size_checkbutton = IntVar(value=1)
+        self.output = ""
+
+        self.frontend_thread = None
+        self.online_thread = None
+        self.roody_thread = None
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         self.state = DISABLED
 
-
         self.margin = 30
 
         self.autoupdate_flag = True
+
+        self.poll = select.poll()
 
     def gui_pack(self):
         ##################
         self.status_panel.pack(side=TOP, fill=X)
         self.connect_status_label.pack(side=LEFT, padx=3)
-        self.file_status_label.pack(side=LEFT,padx=1)
-        self.runnum_status_label.pack(side=LEFT,padx=1)
+        self.file_status_label.pack(side=LEFT, padx=1)
+        self.runnum_status_label.pack(side=LEFT, padx=1)
+        self.frontend_button.pack(side=RIGHT, padx=1)
 
         ##################
         self.connect_panel.pack(side=TOP, fill=X)
-        self.ip_entry.pack(side=LEFT,padx=1)
-        self.port_entry.pack(side=LEFT,padx=1)
-        self.connect_button.pack(side=LEFT,padx=1)
+        self.ip_entry.pack(side=LEFT, padx=1)
+        self.port_entry.pack(side=LEFT, padx=1)
+        self.connect_button.pack(side=LEFT, padx=1)
 
-        self.file_entry.pack(side=LEFT,padx=1)
-        self.runn_entry.pack(side=LEFT,padx=1)
-        self.file_set_button.pack(side=LEFT,padx=1)
-
-        ##################
-        self.run_status_panel.pack(side=TOP, fill=X,pady=10)
-        self.run_status_label.pack(side=LEFT,padx=1)
-        self.data_rate_label.pack(side=LEFT,padx=10)
-        self.acq_rate_label.pack(side=LEFT,padx=1)
-        self.file_size_label.pack(side=LEFT,padx=1)
+        self.file_entry.pack(side=LEFT, padx=1)
+        self.runn_entry.pack(side=LEFT, padx=1)
+        self.file_set_button.pack(side=LEFT, padx=1)
 
         ##################
-        self.run_control_panel.pack(side=TOP, fill=X,pady=10)
-        self.run_start_button.pack(side=LEFT,padx=1)
-        self.run_stop_button.pack(side=LEFT,padx=5)
-        self.max_file_size_checkbutton.pack(side=LEFT,ipadx=10)
-        self.max_file_size_label.pack(side=LEFT,padx=5)
-        self.max_file_size_entry.pack(side=LEFT,padx=5)
+        self.run_status_panel.pack(side=TOP, fill=X, pady=10)
+        self.run_status_label.pack(side=LEFT, padx=1)
+        self.data_rate_label.pack(side=LEFT, padx=10)
+        self.acq_rate_label.pack(side=LEFT, padx=1)
+        self.file_size_label.pack(side=LEFT, padx=1)
+
+        ##################
+        self.run_control_panel.pack(side=TOP, fill=X, pady=10)
+        self.run_start_button.pack(side=LEFT, padx=1)
+        self.run_stop_button.pack(side=LEFT, padx=5)
+        self.max_file_size_checkbutton.pack(side=LEFT, ipadx=10)
+        self.max_file_size_label.pack(side=LEFT, padx=5)
+        self.max_file_size_entry.pack(side=LEFT, padx=5)
+
+        #################
+        self.analyze_panel.pack(side=TOP, fill=X, pady=10)
+        self.online_button.pack(side=LEFT, padx=1)
+        self.roody_button.pack(side=LEFT, padx=5)
+
+        ################
+        self.output_panel.pack(side=TOP, fill=X, pady=10)
+        self.output_box.pack(side=LEFT)
 
     def window_init(self):
         self.master.title('DAQ')
@@ -100,11 +138,29 @@ class Application(Frame):
 
         self.status_panel = Frame(self, bd=5)
 
-        self.connect_status_label = Label(self.status_panel, textvariable=self.connect_status, bg='red', width=10, padx=0, pady=0)
+        self.connect_status_label = Label(
+            self.status_panel, textvariable=self.connect_status, bg='red', width=10, padx=0, pady=0)
 
-        self.file_status_label = Label(self.status_panel, textvariable=self.file_status, width=20)
+        self.file_status_label = Label(
+            self.status_panel, textvariable=self.file_status, width=20)
 
-        self.runnum_status_label = Label(self.status_panel, textvariable=self.runnum_status, width=20)
+        self.runnum_status_label = Label(
+            self.status_panel, textvariable=self.runnum_status, width=20)
+
+        def func_start_frontend():
+            if self.frontend_button['relief'] == RAISED:
+                self.frontend_thread = Popen(
+                    'frontend', shell=True, stdout=PIPE, stderr=PIPE)
+                self.poll.register(self.frontend_thread.stdout, select.POLLIN)
+                self.frontend_button['relief'] = SUNKEN
+                time.sleep(0.2)
+            else:
+                self.frontend_thread.terminate()
+                self.poll.unregister(self.frontend_thread.stdout)
+                # time.sleep(0.2)
+
+        self.frontend_button = Button(
+            self.status_panel, text='OFF', width=7, state=NORMAL, command=func_start_frontend)
 
     def connect_panel_init(self):
         def func_connect():
@@ -134,26 +190,29 @@ class Application(Frame):
 
         self.connect_panel = Frame(self, bd=5)
 
-        self.port_entry = Entry(self.connect_panel, width=8, textvariable=self.port, justify='center')
-        self.ip_entry = Entry(self.connect_panel, width=15, textvariable=self.ip, justify='center')
+        self.port_entry = Entry(
+            self.connect_panel, width=8, textvariable=self.port, justify='center')
+        self.ip_entry = Entry(self.connect_panel, width=15,
+                              textvariable=self.ip, justify='center')
 
-
-        self.connect_button = Button(self.connect_panel, textvariable=self.connect_button_title, width=7,height=1, command=func_connect)
+        self.connect_button = Button(
+            self.connect_panel, textvariable=self.connect_button_title, width=7, height=1, command=func_connect)
 
         def func_file_set():
-            self.FileName=self.file_entry.get()
-            self.RunNum=atoi(self.runn_entry.get())
-            self.set('filename',self.file_entry.get())
-            self.set('runnum',self.runn_entry.get())
+            self.FileName = self.file_entry.get()
+            self.RunNum = atoi(self.runn_entry.get())
+            self.set('filename', self.file_entry.get())
+            self.set('runnum', self.runn_entry.get())
             self.file_status.set("File Name: %s" % self.FileName)
             self.runnum_status.set("Run Number: %d" % self.RunNum)
 
+        self.file_entry = Entry(
+            self.connect_panel, width=15, justify='center', state=DISABLED)
+        self.runn_entry = Entry(
+            self.connect_panel, width=8, justify='center', state=DISABLED)
 
-        self.file_entry = Entry(self.connect_panel, width=15, justify='center', state=DISABLED)
-        self.runn_entry = Entry(self.connect_panel, width=8, justify='center', state=DISABLED)
-
-
-        self.file_set_button = Button(self.connect_panel, text='set', width=7, state=self.state, command=func_file_set)
+        self.file_set_button = Button(
+            self.connect_panel, text='set', width=7, state=self.state, command=func_file_set)
 
     # def figure_init(self):
     #     self.figure_panel = Frame(self, bd=5)
@@ -170,32 +229,69 @@ class Application(Frame):
 
     def run_status_panel_init(self):
 
-        self.run_status_panel=Frame(self,bd=5)
+        self.run_status_panel = Frame(self, bd=5)
 
-        self.run_status_label = Label(self.run_status_panel, text=" ", bg='red',width=2, justify=LEFT)
+        self.run_status_label = Label(
+            self.run_status_panel, text=" ", bg='red', width=2, justify=LEFT)
 
-        self.data_rate_label = Label(self.run_status_panel, textvariable=self.data_rate_status, width=18, justify=LEFT)
+        self.data_rate_label = Label(
+            self.run_status_panel, textvariable=self.data_rate_status, width=18, justify=LEFT)
 
-        self.acq_rate_label = Label(self.run_status_panel, textvariable=self.acq_rate_status, width=18, justify=LEFT)
+        self.acq_rate_label = Label(
+            self.run_status_panel, textvariable=self.acq_rate_status, width=18, justify=LEFT)
 
-        self.file_size_label = Label(self.run_status_panel, textvariable=self.file_size_status, width=18, justify=LEFT)
-
+        self.file_size_label = Label(
+            self.run_status_panel, textvariable=self.file_size_status, width=18, justify=LEFT)
 
     def run_control_panel_init(self):
 
-        self.run_control_panel=Frame(self,bd=5)
+        self.run_control_panel = Frame(self, bd=5)
 
+        self.run_start_button = Button(
+            self.run_control_panel, text='START', width=7, state=DISABLED, command=self.func_run_start)
 
-        self.run_start_button = Button(self.run_control_panel, text='START', width=7, state=DISABLED, command=self.func_run_start)
+        self.run_stop_button = Button(
+            self.run_control_panel, text='STOP', width=7, state=DISABLED, command=self.func_run_stop)
 
+        self.max_file_size_checkbutton = Checkbutton(
+            self.run_control_panel, state=DISABLED, variable=self.file_size_checkbutton, onvalue=1, offvalue=0, width=1, anchor='e')
+        self.max_file_size_label = Label(
+            self.run_control_panel, text='Maximum File Size (MB)', width=18, anchor='w')
+        self.max_file_size_entry = Entry(
+            self.run_control_panel, width=10, justify=CENTER)
+        self.max_file_size_entry.insert(0, 2000)
 
-        self.run_stop_button = Button(self.run_control_panel, text='STOP', width=7, state=DISABLED, command=self.func_run_stop)
+    def analyze_panel_init(self):
 
-        self.max_file_size_checkbutton=Checkbutton(self.run_control_panel,state=DISABLED,variable=self.file_size_checkbutton,onvalue=1,offvalue=0,width=1,anchor='e')
-        self.max_file_size_label = Label(self.run_control_panel, text='Maximum File Size (MB)', width=18, anchor='w')
-        self.max_file_size_entry = Entry(self.run_control_panel, width=10, justify=CENTER)
-        self.max_file_size_entry.insert(0,2000);
+        def func_start_online(text):
+            if self.online_button['relief'] == RAISED:
+                self.online_thread = Popen(
+                    'online', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+                self.online_button['relief'] == SUNKEN
+            else:
+                self.online_thread.terminate()
 
+        def func_start_roody():
+            if self.roody_button['relief'] == RAISED:
+                self.roody_thread = Popen(
+                    'roody -H localhost:9090', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+                self.roody_button['relief'] = SUNKEN
+                time.sleep(0.2)
+            else:
+                self.roody_thread.terminate()
+                # time.sleep(0.2)
+
+        self.analyze_panel = Frame(self, bd=5)
+
+        self.online_button = Button(
+            self.analyze_panel, text='ONLINE', width=7, state=DISABLED, command=lambda: func_start_online(self.online_button['text']))
+        self.roody_button = Button(
+            self.analyze_panel, text='ROODY', width=7, state=DISABLED, command=func_start_roody)
+
+    def output_panel_init(self):
+        self.output_panel = Frame(self, bd=5)
+        self.output_box = Listbox(
+            self.output_panel, width=500, height=500)
 
     def send(self, msg):
         try:
@@ -213,15 +309,16 @@ class Application(Frame):
                 fb_raw = self.s.recv(100)
                 fb = fb_raw.split()
                 self.AcqRun = atoi(fb[0])
-                self.DataRate=atof(fb[1])
-                self.AcqRate=atof(fb[2])
-                self.FileSize=atof(fb[3])
+                self.DataRate = atof(fb[1])
+                self.AcqRate = atof(fb[2])
+                self.FileSize = atof(fb[3])
                 self.AcqDur = atoi(fb[4])
 
-
-                self.data_rate_status.set("DataRate: %-5.2f kB/s" % self.DataRate)
+                self.data_rate_status.set(
+                    "DataRate: %-5.2f kB/s" % self.DataRate)
                 self.acq_rate_status.set("AcqRate: %-5.2f kHz" % self.AcqRate)
-                self.file_size_status.set("FileSize: %-5.2f MB" % self.FileSize)
+                self.file_size_status.set(
+                    "FileSize: %-5.2f MB" % self.FileSize)
                 # PrintStatus(verb)
                 # print AcqRun,AcqDur,DataRate,AcqRate,FileSize
             elif com == "filename":
@@ -229,21 +326,20 @@ class Application(Frame):
                 fb_raw = self.s.recv(100)
                 fb = fb_raw.split()
                 self.file_status.set("File Name: %s" % fb[0])
-                self.FileName=fb[0]
+                self.FileName = fb[0]
                 # PrintStatus(verb)
                 # print "FileName:", FileName
             elif com == "runnum":
                 self.s.send(b'get runnum')
                 fb_raw = self.s.recv(100)
                 fb = fb_raw.split()
-                self.RunNum=atoi(fb[0])
+                self.RunNum = atoi(fb[0])
                 self.runnum_status.set("Run Number: %d" % atoi(fb[0]))
                 # PrintStatus(verb)
                 # print RunNum
         except Exception as e:
             self.connect_status.set('disconnect')
             return
-    
 
     def set(self, com, arg):
         try:
@@ -254,53 +350,75 @@ class Application(Frame):
         except Exception as e:
             self.connect_status.set('disconnect')
             return
-        
-        
 
     def update(self):
         self.get('status')
-        print 'test'
         self.get('filename')
         self.get('runnum')
 
     def autoupdate(self):
-        if self.autoupdate_flag==True and self.connect_status.get() == 'connect':
+        if self.autoupdate_flag == True and self.connect_status.get() == 'connect':
             try:
                 self.update()
             except Exception as e:
-                connect_status.set('disconnect')
+                self.connect_status.set('disconnect')
                 print("Connection refused 2")
         self.after(1000, self.autoupdate)
 
     def supervisor(self):
         # self.update()
-        if self.connect_status.get()=='disconnect':
+        if self.connect_status.get() == 'disconnect':
             self.after_disconnect()
 
-        elif self.connect_status.get()=='connect':
+        elif self.connect_status.get() == 'connect':
             self.after_connect()
 
-            if self.AcqRun==1:
+            if self.AcqRun == 1:
                 self.after_start()
-                if self.file_size_checkbutton.get()==1:
-                    if self.FileSize>atoi(self.max_file_size_entry.get()):
-                        self.autoupdate_flag=False
-                        self.FileSize=0
-                        curr_runn=self.RunNum
+                if self.file_size_checkbutton.get() == 1:
+                    if self.FileSize > atoi(self.max_file_size_entry.get()):
+                        self.autoupdate_flag = False
+                        self.FileSize = 0
+                        self.curr_runn = self.RunNum
                         self.func_run_stop()
                         while self.AcqRun != 0:
                             time.sleep(1)
                             self.update()
                         self.func_run_start()
-                        self.autoupdate_flag=True
+                        self.autoupdate_flag = True
             else:
                 self.after_stop()
 
+        if self.online_thread != None and self.online_thread.poll() == None:
+            self.online_button['relief'] = SUNKEN
+        else:
+            self.online_button['relief'] = RAISED
 
+        if self.roody_thread != None and self.roody_thread.poll() == None:
+            self.roody_button['relief'] = SUNKEN
+        else:
+            self.roody_button['relief'] = RAISED
 
-        self.after(100,self.supervisor)
-
-
+        if self.frontend_thread != None and self.frontend_thread.poll() == None:
+            if self.poll.poll(1):
+                self.output = self.frontend_thread.stdout.readline()
+                self.output = re.split('\n|\r', self.output)
+                self.output.remove('')
+                # print self.output
+                for line in self.output:
+                    self.output_box.insert(
+                        END, line)
+                    self.output_box.yview(END)
+            self.frontend_button['relief'] = SUNKEN
+            self.frontend_button['bg'] = 'green'
+            self.frontend_button['fg'] = 'white'
+            self.frontend_button['text'] = 'ON'
+        else:
+            self.frontend_button['relief'] = RAISED
+            self.frontend_button['bg'] = 'red'
+            self.frontend_button['text'] = 'OFF'
+            self.frontend_button['fg'] = 'black'
+        self.after(100, self.supervisor)
 
     def after_disconnect(self):
         self.connect_status.set('disconnect')
@@ -311,17 +429,17 @@ class Application(Frame):
         self.file_entry['state'] = self.state
         self.runn_entry['state'] = self.state
         self.file_set_button['state'] = self.state
-        self.run_start_button['state']=self.state
-        self.run_stop_button['state']=self.state
-        self.max_file_size_entry['state']=self.state
-        self.max_file_size_label['state']=self.state
+        self.run_start_button['state'] = self.state
+        self.run_stop_button['state'] = self.state
+        self.max_file_size_entry['state'] = self.state
+        self.max_file_size_label['state'] = self.state
         self.max_file_size_checkbutton['state'] = self.state
-        self.AcqRun=0
+        self.AcqRun = 0
 
-        self.run_status_label['bg']='red'
+        self.run_status_label['bg'] = 'red'
 
-        self.ip_entry['state']=NORMAL
-        self.port_entry['state']=NORMAL
+        self.ip_entry['state'] = NORMAL
+        self.port_entry['state'] = NORMAL
 
     def after_connect(self):
         self.connect_status.set('connect')
@@ -334,37 +452,41 @@ class Application(Frame):
         self.file_set_button['state'] = self.state
         self.max_file_size_checkbutton['state'] = self.state
 
-        self.ip_entry['state']=DISABLED
-        self.port_entry['state']=DISABLED
+        self.ip_entry['state'] = DISABLED
+        self.port_entry['state'] = DISABLED
 
     def after_start(self):
         self.file_entry['state'] = DISABLED
         self.runn_entry['state'] = DISABLED
         self.file_set_button['state'] = DISABLED
-        self.run_start_button['state'] =DISABLED
-        self.max_file_size_entry['state']= DISABLED
-        self.max_file_size_label['state'] =DISABLED
+        self.run_start_button['state'] = DISABLED
+        self.max_file_size_entry['state'] = DISABLED
+        self.max_file_size_label['state'] = DISABLED
         self.max_file_size_checkbutton['state'] = DISABLED
 
-        self.run_stop_button['state']=NORMAL
-        self.run_status_label['bg']='green'
+        self.online_button['state'] = NORMAL
+        self.roody_button['state'] = NORMAL
 
+        self.run_stop_button['state'] = NORMAL
+        self.run_status_label['bg'] = 'green'
 
     def after_stop(self):
         self.file_entry['state'] = NORMAL
         self.runn_entry['state'] = NORMAL
         self.file_set_button['state'] = NORMAL
-        self.run_start_button['state']= NORMAL
-        self.max_file_size_entry['state'] =NORMAL
-        self.max_file_size_label['state']= NORMAL
+        self.run_start_button['state'] = NORMAL
+        self.max_file_size_entry['state'] = NORMAL
+        self.max_file_size_label['state'] = NORMAL
 
-        if self.file_size_checkbutton.get()==0:
-            self.max_file_size_entry['state']=DISABLED
+        self.online_button['state'] = DISABLED
+        self.roody_button['state'] = DISABLED
+
+        if self.file_size_checkbutton.get() == 0:
+            self.max_file_size_entry['state'] = DISABLED
         else:
             self.max_file_size_checkbutton['state'] = NORMAL
-        self.run_stop_button['state']=DISABLED
-        self.run_status_label['bg']='red'
-
+        self.run_stop_button['state'] = DISABLED
+        self.run_status_label['bg'] = 'red'
 
     def func_run_start(self):
         self.send(b"start")
@@ -372,6 +494,13 @@ class Application(Frame):
     def func_run_stop(self):
         self.send(b"stop")
 
+
 if __name__ == '__main__':
     app = Application()
+
+    def signal_handler(sig, frame):
+        # print 'sigint captured'
+        app.quit()
+
+    signal.signal(signal.SIGINT, signal_handler)
     app.mainloop()

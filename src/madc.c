@@ -70,7 +70,7 @@ int init_madc(MVME_INTERFACE *vme)
 
 
 
-  // ret |= madc_write_register(vme, MCST_BASE + 0x6070, 0b111); //the first board in chain
+  ret |= madc_write_register(vme, MCST_BASE + 0x6070, 0b111); //the first board in chain
 
   /* set input range, 0=4v, 1=10v, 2=8v */
   ret |= madc_setInput_range(vme, MCST_BASE, 0x1);
