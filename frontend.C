@@ -210,7 +210,8 @@ int book_TTree()
         struct tm tm = *localtime(&t);
         sprintf(newname, "%s.%d-%d-%d_%d:%d:%d", file_name, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
         printf("--> File %s existed.\n", file_name);
-        printf("--> Renamed to %s", newname);
+        printf("--> Renamed to %s\n", newname);
+        fflush(stdout);
         root_file = new TFile(newname, "CREATE");
     }
 
