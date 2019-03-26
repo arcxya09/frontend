@@ -85,6 +85,8 @@ class Application(Frame):
         self.autoupdate_flag = True
 
         self.poll = select.poll()
+        self.roodypoll = select.poll()
+        self.onlinepoll = select.poll()
 
     def gui_pack(self):
         ##################
@@ -155,7 +157,7 @@ class Application(Frame):
                 self.frontend_button['relief'] = SUNKEN
                 time.sleep(0.2)
             else:
-                self.frontend_thread.terminate()
+                self.frontend_thread.kill()
                 self.poll.unregister(self.frontend_thread.stdout)
                 # time.sleep(0.2)
 
@@ -268,7 +270,10 @@ class Application(Frame):
                 self.online_thread = Popen(
                     'online', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
                 self.online_button['relief'] == SUNKEN
+                self.onlinepoll.register(
+                    self.online_thread.stdout, select.POLLIN)
             else:
+                self.onlinepoll.unregister(self.online_thread.stdout)
                 self.online_thread.terminate()
 
         def func_start_roody():
@@ -276,8 +281,13 @@ class Application(Frame):
                 self.roody_thread = Popen(
                     'roody -H localhost:9090', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
                 self.roody_button['relief'] = SUNKEN
+
+                self.roodypoll.register(
+                    self.roody_thread.stdout, select.POLLIN)
+
                 time.sleep(0.2)
             else:
+                self.roodypoll.unregister(self.roody_thread.stdout)
                 self.roody_thread.terminate()
                 # time.sleep(0.2)
 
@@ -391,11 +401,29 @@ class Application(Frame):
 
         if self.online_thread != None and self.online_thread.poll() == None:
             self.online_button['relief'] = SUNKEN
+            if self.onlinepoll.poll(1):
+                self.output = self.online_thread.stdout.readline()
+                self.output = re.split('\n|\r', self.output)
+                self.output.remove('')
+                # print self.output
+                for line in self.output:
+                    self.output_box.insert(
+                        END, "[ONLINE] "+line)
+                    self.output_box.yview(END)
         else:
             self.online_button['relief'] = RAISED
 
         if self.roody_thread != None and self.roody_thread.poll() == None:
             self.roody_button['relief'] = SUNKEN
+            if self.roodypoll.poll(1):
+                self.output = self.roody_thread.stdout.readline()
+                self.output = re.split('\n|\r', self.output)
+                self.output.remove('')
+                # print self.output
+                for line in self.output:
+                    self.output_box.insert(
+                        END, "[ROODY] "+line)
+                    self.output_box.yview(END)
         else:
             self.roody_button['relief'] = RAISED
 
@@ -407,7 +435,7 @@ class Application(Frame):
                 # print self.output
                 for line in self.output:
                     self.output_box.insert(
-                        END, line)
+                        END, "[FRONTEND] "+line)
                     self.output_box.yview(END)
             self.frontend_button['relief'] = SUNKEN
             self.frontend_button['bg'] = 'green'
@@ -452,6 +480,9 @@ class Application(Frame):
         self.file_set_button['state'] = self.state
         self.max_file_size_checkbutton['state'] = self.state
 
+        self.online_button['state'] = NORMAL
+        self.roody_button['state'] = NORMAL
+
         self.ip_entry['state'] = DISABLED
         self.port_entry['state'] = DISABLED
 
@@ -464,8 +495,8 @@ class Application(Frame):
         self.max_file_size_label['state'] = DISABLED
         self.max_file_size_checkbutton['state'] = DISABLED
 
-        self.online_button['state'] = NORMAL
-        self.roody_button['state'] = NORMAL
+        # self.online_button['state'] = NORMAL
+        # self.roody_button['state'] = NORMAL
 
         self.run_stop_button['state'] = NORMAL
         self.run_status_label['bg'] = 'green'
@@ -478,8 +509,8 @@ class Application(Frame):
         self.max_file_size_entry['state'] = NORMAL
         self.max_file_size_label['state'] = NORMAL
 
-        self.online_button['state'] = DISABLED
-        self.roody_button['state'] = DISABLED
+        # self.online_button['state'] = DISABLED
+        # self.roody_button['state'] = DISABLED
 
         if self.file_size_checkbutton.get() == 0:
             self.max_file_size_entry['state'] = DISABLED

@@ -31,12 +31,12 @@ int init_madc(MVME_INTERFACE *vme)
   WORD madc_thres[32];
   ret = 0;
 
-  printf("--> MADC-32 Initializing...\n");
+  printf("MADC-32 Initializing...\n");
 
   // /* soft reset all adcs */
   for (int i = 0; i < N_MADC; ++i)
   {
-    printf("----> MADC-32 0x%04x Initializing...\r", MADC_BASE[i] >> 16);
+    printf("--> MADC-32 0x%04x Initializing...\r", MADC_BASE[i] >> 16);
     ret |= madc_soft_reset(vme, MADC_BASE[i]);
     unsigned short CMBLT_MARK = 0x96;
     if (i == 0)
@@ -51,7 +51,7 @@ int init_madc(MVME_INTERFACE *vme)
     if (ret != 0)
     {
       max_try--;
-      printf("----> MADC-32 0x%04x Initial failed, try %d.   \n", MADC_BASE[i] >> 16, max_try);
+      printf("--> MADC-32 0x%04x Initial failed, try %d.   \n", MADC_BASE[i] >> 16, max_try);
 
       if (max_try <= 0)
       {
@@ -62,7 +62,7 @@ int init_madc(MVME_INTERFACE *vme)
       ret = 0;
       continue;
     }
-    else printf("----> MADC-32 0x%04x Initialized.   \n", MADC_BASE[i] >> 16);
+    else printf("--> MADC-32 0x%04x Initialized.   \n", MADC_BASE[i] >> 16);
   }
 
   // ret |= madc_getFirmware_revision(vme, MADC_BASE0, &firmware);
@@ -70,7 +70,7 @@ int init_madc(MVME_INTERFACE *vme)
 
 
 
-  ret |= madc_write_register(vme, MCST_BASE + 0x6070, 0b111); //the first board in chain
+  // ret |= madc_write_register(vme, MCST_BASE + 0x6070, 0b111); //the first board in chain
 
   /* set input range, 0=4v, 1=10v, 2=8v */
   ret |= madc_setInput_range(vme, MCST_BASE, 0x1);

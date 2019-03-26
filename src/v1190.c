@@ -65,6 +65,7 @@ int init_v1190_single(int handle, UINT16 V1190_BASE_ADDR, UINT16 *geo, cvt_V1190
                TRUE,  //enable empty event
                TRUE); //enable trigger time tag and ETTT
 
+    printf("--> stp.\n");
 
     /* read out mode: BERR enabled, event aligned disabled,
      * BLT event number set to 0.*/

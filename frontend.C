@@ -29,7 +29,7 @@
 
 #define MADC_ENABLE
 #define V830_ENABLE
-// #define V1190_ENABLE
+#define V1190_ENABLE
 
 #define ADC_ONLY 1
 #define EVT_ID_ADC 0
@@ -67,6 +67,7 @@ int kbhit();
 unsigned int rb_read_dword();
 void rb_proc_evt();
 void rb_init();
+void check_sock_conn();
 
 int init_serv_sock(int port);
 int cmd_message_recv();
@@ -147,11 +148,15 @@ int PRINT_INTERNAL = 1000000;
 pthread_t logger_thread_id;
 pthread_t cmd_thread_id;
 
+int *online_buf;
+
 // FILE *raw_file;
 
 /* Run status */
 int AcqRun = 0;
 int Quit;
+int Nrr, Nbb;
+
 
 void ClearEventStruct(struct Event_Struct *evt)
 {
@@ -209,8 +214,8 @@ int book_TTree()
         time_t t = time(NULL);
         struct tm tm = *localtime(&t);
         sprintf(newname, "%s.%d-%d-%d_%d:%d:%d", file_name, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-        printf("--> File %s existed.\n", file_name);
-        printf("--> Renamed to %s\n", newname);
+        printf("File %s existed.\n", file_name);
+        printf("Renamed to %s\n", newname);
         fflush(stdout);
         root_file = new TFile(newname, "CREATE");
     }
@@ -257,6 +262,7 @@ void quit()
     shm_unlink("/CAEN_DGTZ_SHM0");
     shm_unlink("/CAEN_DGTZ_SHM1");
     close(listen_sock_fd);
+    // close()
     if (connect_socket_fd != -1)
         close(connect_socket_fd);
 }
@@ -385,55 +391,55 @@ int init_frontend()
     // read modules config from vme.conf
     if (read_vme_config())
     {
-        printf("--> VME config file loaded: %d MADC, %d V1190, %d V830 found.\n", N_MADC, N_V1190, N_V830);
+        printf("VME config file loaded: %d MADC, %d V1190, %d V830 found.\n", N_MADC, N_V1190, N_V830);
     };
 
     init_flag = 1;
     //init vme interface;
     if (mvme_open(&vme, 0))
     {
-        printf("--> board initial failed! %d\n");
+        printf("board initial failed! %d\n");
         return 1;
     }
     else
-        printf("--> mvme_open success...\n");
+        printf("mvme_open success...\n");
 
     if (init_v2718())
     {
-        printf("--> v2718 initial failed!\n");
+        printf("v2718 initial failed!\n");
         return 1;
     }
     else
-        printf("--> v2718 initial success ...\n");
+        printf("v2718 initial success ...\n");
 
 #ifdef MADC_ENABLE
     //-Init MADC32
     if (init_madc(vme))
     {
-        printf("--> madc initial failed!\n");
+        printf("madc initial failed!\n");
         return 1;
     }
-    // else printf("--> madc initial success ...\n");
+    // else printf("madc initial success ...\n");
 #endif
 
 #ifdef V1190_ENABLE
     /* Init V1190 */
     if (init_v1190(vme->handle))
     {
-        printf("--> v1190 initial failed!\n");
+        printf("v1190 initial failed!\n");
         return 1;
     }
-    // else printf("--> v1190 initial success ...\n");
+    // else printf("v1190 initial success ...\n");
 #endif
 
 #ifdef V830_ENABLE
     //  init v830
     if (init_v830(vme))
     {
-        printf("--> v830 initial failed!\n");
+        printf("v830 initial failed!\n");
         return 1;
     }
-    // else printf("--> v830 initial success ...\n");
+    // else printf("v830 initial success ...\n");
 #endif
 
     init_flag = 0;
@@ -447,9 +453,10 @@ int data_ready()
     //  madc_isDataReady(vme, 0, &x);
     //  if (x) return 1;
     //  else goto test;
+    // mvme_IRQEnable(vme, IRQ_LEVEL);
     if (mvme_IRQWait(vme, IRQ_LEVEL, 1))
     {
-        // printf("--> IRQ_LEVEL created ...\n");
+        // printf("IRQ_LEVEL created ...\n");
         return 1;
     }
     return 0;
@@ -483,27 +490,36 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
     *p_buf = n_byte;
     memcpy(p_buf + 1, buf, n_byte);
 
-    // check_sock_conn();
-    if ((connect_socket_fd != -1))
-    {
-        try
-        {
-            if (!socket_readable(connect_socket_fd))
-            {
-                send(connect_socket_fd, evt_name, 4, 0);
-            }
-            else
-            {
-                close(connect_socket_fd);
-                connect_socket_fd = -1;
-            }
-        }
-        catch (...)
-        {
-            printf("error sending data\n");
-            connect_socket_fd = -1;
-            close(connect_socket_fd);
-        }
+    // *online_buf=evt_id;
+    // *(online_buf+1)=n_byte;
+    // memcpy(online_buf+2,buf,n_byte);
+    // online_buf+=n_byte+2;
+    // *(online_buf+1)=-1;
+
+    // Nbb+=n_byte*4;
+    // if(Nbb-Nrr>10000){
+    //     Nrr=Nbb;
+    //     printf("%d\n",Nbb);
+    // }
+
+
+    // if (connect_socket_fd != -1)
+    // {
+    //     if(!socket_readable(connect_socket_fd)){
+    //             send(connect_socket_fd, evt_name, 4, 0);
+    //     }
+
+    // }else
+    // {
+    //     close(connect_socket_fd);
+    //     connect_socket_fd = -1;
+    //     // check_sock_conn();
+    // }
+    if ((connect_socket_fd != -1) &&
+            (-1 == send(connect_socket_fd, evt_name, 4, MSG_NOSIGNAL))) {
+        printf("error sending data\n");
+        connect_socket_fd = -1;
+        close(connect_socket_fd);
     }
 
     /* write the event to the ring buffer */
@@ -566,18 +582,22 @@ int read_madc()
     unsigned int *p = adc_buf;
     static int nn = 0;
     //  goto test;
+
     do
     {
+        nbyte = 0;
         error_code = madc_CMBLT_Event_read(vme, CBLT_BASE, adc_buf, &nbyte, readout_length);
         //  error_code = madc_BLT_Event_read(vme, MADC_BASE, adc_buf, &nbyte, readout_length);
-        //   for (int i = 0; i < nbyte / 4; i++) printf("--> madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
-        if (error_code != cvBusError && error_code != cvSuccess)
+        //   for (int i = 0; i < nbyte / 4; i++) printf("madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
+        if (error_code != cvBusError && error_code != cvSuccess) {
+            printf("read madc error code : %d\n", error_code);
             return error_code;
+        }
         evt_handler(nbyte, adc_buf, EVT_ID_ADC);
         test_num += nbyte;
         i++;
-        //if(i>1)
-        //  printf("i=%d,nbyte=%d,readout_length=%d\n",i,nbyte,readout_length*4);
+        if (i > 1)
+            printf("i=%d,nbyte=%d,readout_length=%d\n", i, nbyte, readout_length * 4);
     } while (nbyte == readout_length * 4);
     return test_num;
 
@@ -638,7 +658,7 @@ int read_v830()
         return error_code;
     error_code = v830_BLT_Event_read(vme, V830_BASE, dest, &nbyte, SCALER_EVENT_LENGTH - 1);
     // printf("*********************************\n\n");
-    // for (int i = 0; i < nbyte / 4; i++) printf("--> v830, nbyte=%d, dest[%d]=%0x\n", nbyte, i, dest[i]);
+    // for (int i = 0; i < nbyte / 4; i++) printf("v830, nbyte=%d, dest[%d]=%0x\n", nbyte, i, dest[i]);
     if (error_code != cvSuccess && error_code != cvBusError)
         return error_code;
 
@@ -853,14 +873,14 @@ int try_start_run()
 {
     if (AcqRun)
     {
-        printf("--> Acquisition already started...\n");
+        printf("Acquisition already started...\n");
         return 0;
     }
     if (start_run())
         return -1;
 
     AcqRun = 1;
-    printf("--> Acquisition started.\n");
+    printf("Acquisition started.\n");
     return 0;
 }
 
@@ -875,7 +895,7 @@ void stop_logger_thread()
     }
     else
     {
-        printf("--> logger stopped\n");
+        printf("logger stopped\n");
     }
 }
 
@@ -905,7 +925,7 @@ int try_stop_run()
 
     if (!AcqRun)
     {
-        printf("--> Acquisition already stoped...\n");
+        printf("Acquisition already stoped...\n");
         return 0;
     }
     // printf("Try stopping...\n");
@@ -915,7 +935,7 @@ int try_stop_run()
     AcqRun = 0;
     // printf("Stopped. AcqRun status: %d\n", AcqRun);
 
-    printf("--> Acquisition stopped.\n");
+    printf("Acquisition stopped.\n");
     return 0;
 }
 
@@ -927,7 +947,7 @@ int try_change_file_name()
 
     if (AcqRun)
     {
-        printf("--> Acquisition must be stoped first...\n");
+        printf("Acquisition must be stoped first...\n");
         // printf("Acquisition must be stoped first...\n");
         return 0;
     }
@@ -1091,7 +1111,7 @@ void *cmd_thread(void *)
         while (!cmd_stop_flag)
         {
             memset(sbuf, 0, sizeof(sbuf));
-            if ((bufs = read(cmd_connect_fd, sbuf, sizeof(sbuf))) == 0)
+            if ((bufs = recv(cmd_connect_fd, sbuf, sizeof(sbuf), MSG_NOSIGNAL)) == 0)
             {
                 close(cmd_connect_fd);
                 break;
@@ -1117,7 +1137,7 @@ void *cmd_thread(void *)
             {
                 if (strcmp(buf, "start") == 0)
                 {
-                    // printf("--> Message: %s\n", buf);
+                    // printf("Message: %s\n", buf);
                     exec_com('s');
                 }
                 else if (strcmp(buf, "stop") == 0)
@@ -1134,13 +1154,13 @@ void *cmd_thread(void *)
                 {
                     if (!AcqRun)
                     {
-                        printf("--> Initializing...\n");
+                        printf("Initializing...\n");
                         mvme_close(vme);
                         init_frontend();
                     }
                     else
                     {
-                        printf("--> Acquiring, unable to initialize.\n");
+                        printf("Acquiring, unable to initialize.\n");
                     }
                 }
                 else if (strcmp(buf, "setfilename") == 0 && bufc == 2)
@@ -1148,11 +1168,11 @@ void *cmd_thread(void *)
                     if (!AcqRun)
                     {
                         sprintf(file, arg);
-                        printf("--> File name is set to %s\n", file);
+                        printf("File name is set to %s\n", file);
                     }
                     else
                     {
-                        printf("--> Acquiring, unable to set file name.\n");
+                        printf("Acquiring, unable to set file name.\n");
                     }
                 }
                 else if (strcmp(buf, "setrunnum") == 0 && bufc == 2)
@@ -1160,11 +1180,11 @@ void *cmd_thread(void *)
                     if (!AcqRun)
                     {
                         run_num = atoi(arg);
-                        printf("--> Run number is set to %d\n", run_num);
+                        printf("Run number is set to %d\n", run_num);
                     }
                     else
                     {
-                        printf("--> Acquiring, unable to set file name.\n");
+                        printf("Acquiring, unable to set file name.\n");
                     }
                 }
                 else if (strcmp(buf, "get") == 0 && bufc == 2)
@@ -1172,7 +1192,7 @@ void *cmd_thread(void *)
 
                     if (strcmp(arg, "status") == 0)
                     {
-                        sprintf(send_msg, "%d %.2f %.2f %.3f %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur);
+                        sprintf(send_msg, "%d %.2f %.2f %.3f %d %s %d", AcqRun, DataRate, AcqRate, FileSize, AcqDur, file, run_num);
                     }
                     else if (strcmp(arg, "filename") == 0)
                     {
@@ -1182,12 +1202,12 @@ void *cmd_thread(void *)
                     {
                         sprintf(send_msg, "%d", run_num);
                     }
-                    send(cmd_connect_fd, send_msg, strlen(send_msg), 0);
+                    send(cmd_connect_fd, send_msg, strlen(send_msg), MSG_NOSIGNAL);
                 }
                 // else
                 // {
                 //     if (strcmp(sbuf, ""))
-                //         printf("--> Message received: %s\n", sbuf);
+                //         printf("Message received: %s\n", sbuf);
                 // }
             }
         }
@@ -1292,7 +1312,7 @@ void loop_cycle()
             if (ret < 0)
             {
                 vme_error_handler("v1190 blt read error", ret);
-                goto begin_loop;
+                continue;
             }
             Nb += ret;
 #endif
@@ -1412,9 +1432,6 @@ static void sig_handler(int signum)
 
 int main(int argc, char *argv[])
 {
-    signal(SIGINT, sig_handler);
-    signal(SIGTERM, sig_handler);
-    signal(SIGKILL, sig_handler);
 
     struct sigaction sa;
 
@@ -1427,12 +1444,13 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, sig_handler);
     signal(SIGTERM, sig_handler);
+    signal(SIGKILL, sig_handler);
 
     /* Init frontend */
-    printf("--> Init...\n");
+    printf("Init...\n");
     if (init_frontend())
         return -1;
-    printf("--> Finished...\n");
+    printf("Finished...\n");
 
     listen_sock_fd = init_serv_sock(9093);
     connect_socket_fd = -1;
@@ -1441,6 +1459,8 @@ int main(int argc, char *argv[])
     shm_adc = open_shared("/MYDAQ_ADC0", 1024 * 1024 * 10);
     shm_tdc = open_shared("/MYDAQ_TDC0", 1024 * 1024 * 10);
     shm_scl = open_shared("/MYDAQ_SCAL", 4096);
+    // shm_online = open_shared("/ONLINE", 1024 * 1024 * 1024*8);
+    // online_buf=(int *)share_online;
 
     start_cmd_thread();
 

@@ -351,7 +351,7 @@ int v830_set_BERR(MVME_INTERFACE* vme, mvme_addr_t addr, short value)
 int init_v830(MVME_INTERFACE *vme)
 {
   int ret;
-  printf("--> v830 Initializing...\n");
+  printf("v830 Initializing...\n");
 
   ret = 0;
   ret |= v830_soft_reset(vme, V830_BASE);
@@ -375,7 +375,7 @@ int init_v830(MVME_INTERFACE *vme)
 
   if (ret == 0)
   {
-    printf("--> v830 Initialized.\n");
+    printf("v830 Initialized.\n");
   }
   return ret;
 }
