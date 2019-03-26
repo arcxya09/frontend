@@ -632,6 +632,7 @@ int read_v1190()
         return cvCommError;
     // printf("%d\n", nbyte);
     evt_handler(nbyte, tdc_buf, EVT_ID_TDC);
+    // printf("%d\n",nbyte);
     return nbyte;
 }
 
@@ -730,7 +731,7 @@ int reset_ts()
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegSet, 0x80); //> out_lemo_1
     if (ret != cvSuccess)
         return ret;
-
+    
     /* Then send the reset signals */
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegSet, 0x40); //> out_lemo_0
     if (ret != cvSuccess)
