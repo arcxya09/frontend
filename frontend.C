@@ -741,6 +741,12 @@ int reset_ts()
     if (ret != cvSuccess)
         return ret;
 
+    ret |= v1190_clear_buf();
+    // ret |= v1190_data_clear();
+    ret |= madc_setFifo_reset(vme, MCST_BASE);
+    // ret |= madc_readout_reset(vme, MCST_BASE);
+
+
     return 0;
 }
 
