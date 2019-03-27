@@ -130,7 +130,7 @@ int init_madc(MVME_INTERFACE *vme)
 
   /* */
   // ret |= madc_set_ts_source(vme, MCST_BASE, 0x3); //use external oscillator input, enable external reset;
-  ret |= madc_set_ts_source(vme, MCST_BASE, 0x2); //use internal oscillator input, internal reset;
+  ret |= madc_set_ts_source(vme, MCST_BASE, 0x3); //use internal oscillator input, internal reset;
 
   ret |= madc_set_reset_ctr_ab(vme, MCST_BASE, 0xC); //allow single shot reset for CTRA;
   ret |= madc_set_NIM_gate1_osc(vme, MCST_BASE, 1); //set NIM_gate1_osc as oscillator input;

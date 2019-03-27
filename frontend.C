@@ -736,6 +736,7 @@ int reset_ts()
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegSet, 0x40); //> out_lemo_0
     if (ret != cvSuccess)
         return ret;
+    usleep(1);
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegClear, 0x40);
     if (ret != cvSuccess)
         return ret;
