@@ -27,6 +27,8 @@
 #include "madc.h"
 #include "v830.h"
 
+#define MADC_READ_BUF_SIZE 8192 * 2
+
 #define MADC_ENABLE
 #define V830_ENABLE
 #define V1190_ENABLE
@@ -49,7 +51,7 @@ UINT16 *V1190_GEO;
 
 ///////
 
-unsigned int adc_buf[8192 * 8];
+unsigned int adc_buf[MADC_READ_BUF_SIZE * 4];
 /* function declears */
 int try_stop_run();
 int try_start_run();
@@ -156,7 +158,6 @@ int *online_buf;
 int AcqRun = 0;
 int Quit;
 int Nrr, Nbb;
-
 
 void ClearEventStruct(struct Event_Struct *evt)
 {
@@ -303,7 +304,7 @@ int reset_busy()
 
 int read_vme_config()
 {
-    FILE *fp = fopen("/home/rnb/daq/daq/frontend/vme.conf", "r");
+    FILE *fp = fopen("vme.conf", "r");
     if (fp == NULL)
     {
         fputs("VME config file load error code 1!", stderr);
@@ -453,11 +454,27 @@ int data_ready()
     //  madc_isDataReady(vme, 0, &x);
     //  if (x) return 1;
     //  else goto test;
-    // mvme_IRQEnable(vme, IRQ_LEVEL);
+
+    unsigned char mask;
+    mvme_IRQCheck(vme, &mask);
+    // return mask;
+
+    // printf("%d %d\n", mask, ERROR);
+
     if (mvme_IRQWait(vme, IRQ_LEVEL, 1))
     {
         // printf("IRQ_LEVEL created ...\n");
         return 1;
+    }
+    else
+    {
+        if (mask == 1)
+        {
+            printf("TDC READ ERROR\n");
+            // return -1;
+        }
+        return mask;
+        // v1190_data_clear();
     }
     return 0;
 }
@@ -502,7 +519,6 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
     //     printf("%d\n",Nbb);
     // }
 
-
     // if (connect_socket_fd != -1)
     // {
     //     if(!socket_readable(connect_socket_fd)){
@@ -516,7 +532,8 @@ void evt_handler(int n_byte, unsigned int *buf, int evt_id)
     //     // check_sock_conn();
     // }
     if ((connect_socket_fd != -1) &&
-            (-1 == send(connect_socket_fd, evt_name, 4, MSG_NOSIGNAL))) {
+        (-1 == send(connect_socket_fd, evt_name, 4, MSG_NOSIGNAL)))
+    {
         printf("error sending data\n");
         connect_socket_fd = -1;
         close(connect_socket_fd);
@@ -552,22 +569,17 @@ void vme_error_handler(const char *msg, int error_code)
      * open the vme interface again. In this case, it
      * is always better to start a new run */
     try_stop_run();
-    mvme_close(vme);
-    if (mvme_open(&vme, 0))
-    {
-        printf("board initial failed!\n");
-        exit(-1);
-    }
-    if (init_v2718())
-    {
-        printf("v2718 initial failed!\n");
-        exit(-1);
-    }
-    if (try_start_run())
-    {
-        printf("error starting a new run \n");
-        exit(-1);
-    }
+    // mvme_close(vme);
+    // if (init_frontend())
+    // {
+    //     printf("initial failed!\n");
+    //     exit(-1);
+    // }
+    // if (try_start_run())
+    // {
+    //     printf("error starting a new run \n");
+    //     exit(-1);
+    // }
 }
 
 /* read madc32, return number of bytes read,
@@ -575,7 +587,7 @@ void vme_error_handler(const char *msg, int error_code)
 int read_madc()
 {
 
-    int readout_length = 8192 * 2;
+    int readout_length = MADC_READ_BUF_SIZE;
     int nbyte, i = 0;
     int test_num = 0;
     int error_code;
@@ -589,16 +601,17 @@ int read_madc()
         error_code = madc_CMBLT_Event_read(vme, CBLT_BASE, adc_buf, &nbyte, readout_length);
         //  error_code = madc_BLT_Event_read(vme, MADC_BASE, adc_buf, &nbyte, readout_length);
         //   for (int i = 0; i < nbyte / 4; i++) printf("madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
-        if (error_code != cvBusError && error_code != cvSuccess) {
+        if (error_code != cvBusError && error_code != cvSuccess)
+        {
             printf("read madc error code : %d\n", error_code);
             return error_code;
         }
         evt_handler(nbyte, adc_buf, EVT_ID_ADC);
         test_num += nbyte;
-        i++;
-        if (i > 1)
-            printf("i=%d,nbyte=%d,readout_length=%d\n", i, nbyte, readout_length * 4);
     } while (nbyte == readout_length * 4);
+    i++;
+    if (i > 1)
+        printf("i=%d,test_num=%d,readout_length=%d\n", i, test_num, readout_length * 4);
     return test_num;
 
     //OBtest:
@@ -627,9 +640,17 @@ int read_v1190()
 
     nbyte = readout_length;
     if (!v1190_read_MEB(tdc_buf, (UINT32 *)&nbyte))
+    {
         /* the error code is not returned from v1190_read_MEB function,
          * so we return the most probobal error code */
+        printf("TDC READ ERROR\n");
         return cvCommError;
+    }
+    if (nbyte == 0)
+    {
+        return 0;
+    }
+
     // printf("%d\n", nbyte);
     evt_handler(nbyte, tdc_buf, EVT_ID_TDC);
     // printf("%d\n",nbyte);
@@ -731,7 +752,7 @@ int reset_ts()
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegSet, 0x80); //> out_lemo_1
     if (ret != cvSuccess)
         return ret;
-    
+
     /* Then send the reset signals */
     ret = CAENVME_WriteRegister(vme->handle, cvOutRegSet, 0x40); //> out_lemo_0
     if (ret != cvSuccess)
@@ -741,11 +762,12 @@ int reset_ts()
     if (ret != cvSuccess)
         return ret;
 
+#ifdef V1190_ENABLE
     ret |= v1190_clear_buf();
+#endif
     // ret |= v1190_data_clear();
     ret |= madc_setFifo_reset(vme, MCST_BASE);
     // ret |= madc_readout_reset(vme, MCST_BASE);
-
 
     return 0;
 }
@@ -1300,32 +1322,44 @@ void loop_cycle()
             continue;
         }
 
-        if (data_ready())
+        int irq = data_ready();
+        // if (irq == -1)
+        // {
+        //     // printf("%d\n", irq);
+        //     try_stop_run();
+        //     mvme_close(vme);
+        //     init_frontend();
+        //     try_start_run();
+        // }
+
+        if (irq == 1)
         {
             mvme_IRQDisable(vme, IRQ_LEVEL);
 #ifdef MADC_ENABLE
             ret = read_madc();
+            madc_readout_reset(vme, MCST_BASE);
             if (ret < 0)
             {
                 vme_error_handler("madc blt read error", ret);
-                continue;
+                // continue;
             }
             Nb += ret;
             // if (AcqRate > 100000) madc_readfifo_reset(vme, 0);
-            madc_readout_reset(vme, MCST_BASE);
 #endif
 
 #ifdef V1190_ENABLE
             ret = read_v1190();
             if (ret < 0)
             {
+                printf("v1190 blt read error");
                 vme_error_handler("v1190 blt read error", ret);
-                continue;
+                // continue;
             }
             Nb += ret;
 #endif
 
             mvme_IRQEnable(vme, IRQ_LEVEL);
+
             Nr++;
         }
         //ret = reset_busy(); // ~ 10us
@@ -1337,7 +1371,8 @@ void loop_cycle()
             ret = read_v830();
             if (ret < 0)
             {
-                vme_error_handler("v830 blt read error", ret);
+                printf("v830 blt read error");
+                // vme_error_handler("v830 blt read error", ret);
                 continue;
             }
             Nb += ret;

@@ -42,7 +42,7 @@ int init_v1190_single(int handle, UINT16 V1190_BASE_ADDR, UINT16 *geo, cvt_V1190
     int i;
     UINT16 enable_0_msk[8];
     BOOL ret;
-    UINT16 substract_trigger;
+    UINT16 substract_trigger, max_multi, dt_hits;
 
     ret = TRUE;
     if (!cvt_V1190_open(p_data, V1190_BASE_ADDR,
@@ -63,18 +63,24 @@ int init_v1190_single(int handle, UINT16 V1190_BASE_ADDR, UINT16 *geo, cvt_V1190
         CVT_V1190_ED_LEADING_ONLY,
         CVT_V1190_PRW_100PS,
         enable_0_msk,
-        FALSE, //disable TDC header and trailer.
+        TRUE,  //disable TDC header and trailer.
         TRUE,  //enable empty event
         TRUE); //enable trigger time tag and ETTT
 
     /* read out mode: BERR enabled, event aligned disabled,
      * BLT event number set to 0.*/
-    ret &= cvt_V1190_set_readout_mode(p_data, TRUE, FALSE, 0);
+    ret &= cvt_V1190_set_readout_mode(p_data, TRUE, TRUE, 0);
 
     /* enable substract trigger time from TDC measuments */
-    substract_trigger = 1;
-    ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_EN_SUB_TRG_OPCODE, &substract_trigger, 1);
+    // substract_trigger = 1;
+    // ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_EN_SUB_TRG_OPCODE, &substract_trigger, 1);
+    max_multi = 2;
+    ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_SET_EVENT_SIZE_OPCODE, &max_multi, 1);
+    dt_hits = 3;
+    ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_SET_DEAD_TIME_OPCODE, &dt_hits, 1);
 
+    // printf("tests!\n");
+    // ret &= cvt_V1190_set_interrupt(p_data, 1, 0xDD);
     /* set the TDC GEO(module ID) */
     // geo = 1;
     ret &= (cvSuccess == CAENVME_WriteCycle(
@@ -88,7 +94,7 @@ int init_v1190_single(int handle, UINT16 V1190_BASE_ADDR, UINT16 *geo, cvt_V1190
 
 int v1190_read_MEB(UINT32 *tdc_buf, UINT32 *nbyte)
 {
-    BOOL ret = 0;
+    int ret = 0;
     UINT32 nbyte_tmp = 8192;
     *nbyte = 0;
     for (int i = 0; i < N_V1190_ENABLE; ++i)
@@ -139,7 +145,7 @@ int v1190_clear_buf()
 
 int v1190_data_clear()
 {
-    BOOL ret;
+    int ret = 0;
     for (int i = 0; i < N_V1190_ENABLE; ++i)
     {
         ret |= cvt_V1190_data_clear(&V1190_data[i]);

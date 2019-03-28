@@ -94,7 +94,8 @@ class Application(Frame):
         self.connect_status_label.pack(side=LEFT, padx=3)
         self.file_status_label.pack(side=LEFT, padx=1)
         self.runnum_status_label.pack(side=LEFT, padx=1)
-        self.frontend_button.pack(side=RIGHT, padx=1)
+        # self.frontend_button.pack(side=RIGHT, padx=1)
+        self.init_button.pack(side=LEFT, padx=10)
 
         ##################
         self.connect_panel.pack(side=TOP, fill=X)
@@ -123,8 +124,8 @@ class Application(Frame):
 
         #################
         self.analyze_panel.pack(side=TOP, fill=X, pady=10)
-        self.online_button.pack(side=LEFT, padx=1)
-        self.roody_button.pack(side=LEFT, padx=5)
+        # self.online_button.pack(side=LEFT, padx=1)
+        self.roody_button.pack(side=LEFT, padx=1)
 
         ################
         self.output_panel.pack(side=TOP, fill=X, pady=10)
@@ -161,8 +162,14 @@ class Application(Frame):
                 self.poll.unregister(self.frontend_thread.stdout)
                 # time.sleep(0.2)
 
+        def func_init():
+            self.s.send("init")
+
         self.frontend_button = Button(
             self.status_panel, text='OFF', width=7, state=NORMAL, command=func_start_frontend)
+
+        self.init_button = Button(
+            self.status_panel, text='REINIT', width=7, state=NORMAL, command=func_init)
 
     def connect_panel_init(self):
         def func_connect():
