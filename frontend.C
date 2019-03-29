@@ -450,6 +450,7 @@ int init_frontend()
 int data_ready()
 {
     int x;
+    // return 1;
     // test:
     //  madc_isDataReady(vme, 0, &x);
     //  if (x) return 1;
@@ -471,10 +472,13 @@ int data_ready()
         if (mask == 1)
         {
             printf("TDC READ ERROR\n");
+            v1190_data_clear();
+            madc_readfifo_reset(vme, MCST_BASE);
+            madc_readout_reset(vme, MCST_BASE);
+            mvme_IRQEnable(vme, IRQ_LEVEL);
             // return -1;
         }
-        return mask;
-        // v1190_data_clear();
+        // return mask;
     }
     return 0;
 }
@@ -589,11 +593,14 @@ int read_madc()
 
     int readout_length = MADC_READ_BUF_SIZE;
     int nbyte, i = 0;
-    int test_num = 0;
+    int test_num = 0, data_len;
     int error_code;
     unsigned int *p = adc_buf;
     static int nn = 0;
     //  goto test;
+    madc_get_data_len(vme, MCST_BASE, &data_len);
+
+    unsigned int *total_buf = (unsigned int *)malloc(sizeof(unsigned int) * MADC_READ_BUF_SIZE * 4 * 1024);
 
     do
     {
@@ -606,12 +613,15 @@ int read_madc()
             printf("read madc error code : %d\n", error_code);
             return error_code;
         }
-        evt_handler(nbyte, adc_buf, EVT_ID_ADC);
+        memcpy(total_buf + test_num, adc_buf, nbyte);
         test_num += nbyte;
+        i++;
     } while (nbyte == readout_length * 4);
-    i++;
-    if (i > 1)
-        printf("i=%d,test_num=%d,readout_length=%d\n", i, test_num, readout_length * 4);
+
+    evt_handler(test_num, total_buf, EVT_ID_ADC);
+
+    printf("i=%d,test_num=%d, data_len=%d\n", i, test_num, data_len);
+
     return test_num;
 
     //OBtest:

@@ -70,11 +70,12 @@ int init_v1190_single(int handle, UINT16 V1190_BASE_ADDR, UINT16 *geo, cvt_V1190
     /* read out mode: BERR enabled, event aligned disabled,
      * BLT event number set to 0.*/
     ret &= cvt_V1190_set_readout_mode(p_data, TRUE, TRUE, 0);
+    // ret &= cvt_V1190_set_almost_full(p_data, 1024);
 
     /* enable substract trigger time from TDC measuments */
-    // substract_trigger = 1;
-    // ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_EN_SUB_TRG_OPCODE, &substract_trigger, 1);
-    max_multi = 2;
+    substract_trigger = 1;
+    ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_EN_SUB_TRG_OPCODE, &substract_trigger, 1);
+    max_multi = 5;
     ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_SET_EVENT_SIZE_OPCODE, &max_multi, 1);
     dt_hits = 3;
     ret &= cvt_V1190_write_2_micro(p_data, CVT_V1190_SET_DEAD_TIME_OPCODE, &dt_hits, 1);
