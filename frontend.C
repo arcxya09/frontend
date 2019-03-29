@@ -27,7 +27,7 @@
 #include "madc.h"
 #include "v830.h"
 
-#define MADC_READ_BUF_SIZE 8192 * 2
+#define MADC_READ_BUF_SIZE 8192
 
 #define MADC_ENABLE
 #define V830_ENABLE
@@ -598,7 +598,7 @@ int read_madc()
     do
     {
         nbyte = 0;
-        error_code = madc_CMBLT_Event_read(vme, CBLT_BASE, adc_buf, &nbyte, readout_length);
+        error_code = madc_CBLT_Event_read(vme, CBLT_BASE, adc_buf, &nbyte, readout_length);
         //  error_code = madc_BLT_Event_read(vme, MADC_BASE, adc_buf, &nbyte, readout_length);
         //   for (int i = 0; i < nbyte / 4; i++) printf("madc, nbyte=%d, adc_buf[%d]=%0x\n", nbyte, i, adc_buf[i]);
         if (error_code != cvBusError && error_code != cvSuccess)
@@ -608,8 +608,8 @@ int read_madc()
         }
         evt_handler(nbyte, adc_buf, EVT_ID_ADC);
         test_num += nbyte;
+        i++;
     } while (nbyte == readout_length * 4);
-    i++;
     if (i > 1)
         printf("i=%d,test_num=%d,readout_length=%d\n", i, test_num, readout_length * 4);
     return test_num;
