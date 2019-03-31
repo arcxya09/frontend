@@ -1,6 +1,8 @@
 *.ipch
 *.bin
 .vscode/
+*.root
+*.log
 
 # Prerequisites
 *.d
