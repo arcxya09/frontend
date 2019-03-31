@@ -9,7 +9,6 @@
 
 int max_try = 5;
 
-
 /* madc initial, return 0 if success */
 int init_madc(MVME_INTERFACE *vme)
 {
@@ -42,7 +41,9 @@ int init_madc(MVME_INTERFACE *vme)
     if (i == 0)
     {
       CMBLT_MARK = 0xa6;
-    } else if (i == N_MADC - 1) {
+    }
+    else if (i == N_MADC - 1)
+    {
       CMBLT_MARK = 0x9a;
     }
 
@@ -62,25 +63,25 @@ int init_madc(MVME_INTERFACE *vme)
       ret = 0;
       continue;
     }
-    else printf("--> MADC-32 0x%04x Initialized.   \n", MADC_BASE[i] >> 16);
+    else
+      printf("--> MADC-32 0x%04x Initialized.   \n", MADC_BASE[i] >> 16);
   }
 
   // ret |= madc_getFirmware_revision(vme, MADC_BASE0, &firmware);
   // printf("%x\n", firmware);
-
-
 
   // ret |= madc_write_register(vme, MCST_BASE + 0x6070, 0b111); //the first board in chain
 
   /* set input range, 0=4v, 1=10v, 2=8v */
   ret |= madc_setInput_range(vme, MCST_BASE, 0x1);
   //set tdc bank0&1  channel trigger on negative edge for diff input
-//  ret |= madc_setInput_range(vme, MADC_BASE5, 0x3);
+  //  ret |= madc_setInput_range(vme, MADC_BASE5, 0x3);
 
   /* set resolution, 0=2k, 1=4k, 3=8k */
   ret |= madc_setAdc_resolution(vme, MCST_BASE, 0x1);
 
-  for (i = 0; i < 32; i++) {
+  for (i = 0; i < 32; i++)
+  {
     madc_thres[i] = 0;
   }
   for (int i = 0; i < N_MADC; ++i)
@@ -93,23 +94,21 @@ int init_madc(MVME_INTERFACE *vme)
   /* set bank operation, 0->banks connected */
   /* set bank operation, 1->banks independent */
   ret |= madc_set_bank_operation(vme, MCST_BASE, 0);
-//  ret |= madc_set_bank_operation(vme, MADC_BASE5,1);
+  //  ret |= madc_set_bank_operation(vme, MADC_BASE5,1);
 
   //TDC
 
   /* set resolution, 6=62.5ps , 2=3.9ps for tdc */
-//  ret |= madc_setAdc_resolution(vme, MADC_BASE5, 0x6);
-//  ret |= madc_write_register(vme, MADC_BASE2+0x6042, 9);
+  //  ret |= madc_setAdc_resolution(vme, MADC_BASE5, 0x6);
+  //  ret |= madc_write_register(vme, MADC_BASE2+0x6042, 9);
   //set trigger source : gate 0
-//  ret |= madc_write_register(vme, MADC_BASE5+0x6058, 1);
+  //  ret |= madc_write_register(vme, MADC_BASE5+0x6058, 1);
   //set trigger source : gate 0 NIM input
-//  ret |= madc_write_register(vme, MADC_BASE5+0x6068, 0);
+  //  ret |= madc_write_register(vme, MADC_BASE5+0x6068, 0);
   //set start of window~ -1100 ns
-//  ret |= madc_write_register(vme, MADC_BASE5+0x6050, 15584);
+  //  ret |= madc_write_register(vme, MADC_BASE5+0x6050, 15584);
   //set width of window~ 800 ns
-//  ret |= madc_write_register(vme, MADC_BASE5+0x6054, 10000);
-
-
+  //  ret |= madc_write_register(vme, MADC_BASE5+0x6054, 10000);
 
   ret |= madc_setIrq_level(vme, MCST_BASE, IRQ_LEVEL);
   ret |= madc_setIrq_threshold(vme, MCST_BASE, IRQ_THRESHOLD);
@@ -127,27 +126,25 @@ int init_madc(MVME_INTERFACE *vme)
   /* set max transfer data, 0->unlimited transfer */
   ret |= madc_set_max_transfer_data(vme, MCST_BASE, 0);
 
-
   /* */
   // ret |= madc_set_ts_source(vme, MCST_BASE, 0x3); //use external oscillator input, enable external reset;
   ret |= madc_set_ts_source(vme, MCST_BASE, 0x3); //use internal oscillator input, internal reset;
 
   ret |= madc_set_reset_ctr_ab(vme, MCST_BASE, 0xC); //allow single shot reset for CTRA;
-  ret |= madc_set_NIM_gate1_osc(vme, MCST_BASE, 1); //set NIM_gate1_osc as oscillator input;
-//  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE1, 1); //set NIM_gate1_osc as oscillator input;
-//  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE2, 1); //set NIM_gate1_osc as oscillator input;
-//  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE3, 1); //set NIM_gate1_osc as oscillator input;
-//  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE4, 1); //set NIM_gate1_osc as oscillator input;
-//  ret |= madc_set_ECL_gate1_osc(vme, MADC_BASE5, 1); //set ECL_gate1_osc as gate1 input;
-  ret |= madc_set_NIM_fc_res(vme, MCST_BASE, 1); //set NIM_fc_res as reset time stamp oscillator input;
-//  ret |= madc_set_NIM_fc_res(vme, MADC_BASE1, 1); //set NIM_fc_res as reset time stamp oscillator input;
-//  ret |= madc_set_NIM_fc_res(vme, MADC_BASE2, 1); //set NIM_fc_res as reset time stamp oscillator input;
-//  ret |= madc_set_NIM_fc_res(vme, MADC_BASE3, 1); //set NIM_fc_res as reset time stamp oscillator input;
-//  ret |= madc_set_NIM_fc_res(vme, MADC_BASE4, 1); //set NIM_fc_res as reset time stamp oscillator input;
-//  ret |= madc_set_NIM_fc_res(vme, MADC_BASE5, 1); //set NIM_fc_res as reset time stamp oscillator input;
+  ret |= madc_set_NIM_gate1_osc(vme, MCST_BASE, 1);  //set NIM_gate1_osc as oscillator input;
+                                                     //  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE1, 1); //set NIM_gate1_osc as oscillator input;
+                                                     //  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE2, 1); //set NIM_gate1_osc as oscillator input;
+                                                     //  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE3, 1); //set NIM_gate1_osc as oscillator input;
+                                                     //  ret |= madc_set_NIM_gate1_osc(vme, MADC_BASE4, 1); //set NIM_gate1_osc as oscillator input;
+                                                     //  ret |= madc_set_ECL_gate1_osc(vme, MADC_BASE5, 1); //set ECL_gate1_osc as gate1 input;
+  ret |= madc_set_NIM_fc_res(vme, MCST_BASE, 1);     //set NIM_fc_res as reset time stamp oscillator input;
+                                                     //  ret |= madc_set_NIM_fc_res(vme, MADC_BASE1, 1); //set NIM_fc_res as reset time stamp oscillator input;
+                                                     //  ret |= madc_set_NIM_fc_res(vme, MADC_BASE2, 1); //set NIM_fc_res as reset time stamp oscillator input;
+                                                     //  ret |= madc_set_NIM_fc_res(vme, MADC_BASE3, 1); //set NIM_fc_res as reset time stamp oscillator input;
+                                                     //  ret |= madc_set_NIM_fc_res(vme, MADC_BASE4, 1); //set NIM_fc_res as reset time stamp oscillator input;
+                                                     //  ret |= madc_set_NIM_fc_res(vme, MADC_BASE5, 1); //set NIM_fc_res as reset time stamp oscillator input;
   //ret |= madc_set_NIM_fc_res(vme, MCST_BASE, 1); //set NIM_fc_res as reset time stamp oscillator input;
   ret |= madc_set_skip_oorange(vme, MCST_BASE, 0); //set do not skip out of range values;
-
 
   /* initialization occurs only once at the beginning of frontend,
    * so we don't check the return values of each vme commands one
@@ -183,7 +180,6 @@ int madc_isDataReady(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *ready)
 
   return reValue;
 }
-
 
 int madc_read_dword(MVME_INTERFACE *vme, mvme_addr_t vme_addr, unsigned int *data)
 {
@@ -221,7 +217,7 @@ int madc_get_data_len(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *data)
 
   mvme_set_dmode(vme, cvD16);
 
-  reValue = mvme_read_value(vme, MADC_BASE[2] + 0x6030, data);
+  reValue = mvme_read_value(vme, vme_addr + 0x6030, data);
 
   mvme_set_dmode(vme, cmode);
   mvme_set_am(vme, cam);
@@ -275,7 +271,6 @@ int madc_setInput_range(MVME_INTERFACE *vme, mvme_addr_t vme_addr, unsigned shor
   mvme_set_am(vme, cam);
 
   return ret;
-
 }
 
 /******************************************************************/
@@ -332,7 +327,6 @@ int madc_setFifo_reset(MVME_INTERFACE *vme, mvme_addr_t vme_addr)
   mvme_set_am(vme, cam);
 
   return ret;
-
 }
 
 /******************************************************************************/
@@ -349,7 +343,6 @@ int madc_getFirmware_revision(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *fm
   mvme_get_dmode(vme, &cmode);
   mvme_get_am(vme, &cam);
 
-
   mvme_set_am(vme, cvA32_S_DATA);
 
   mvme_set_dmode(vme, cvD16);
@@ -360,10 +353,7 @@ int madc_getFirmware_revision(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *fm
   mvme_set_am(vme, cam);
 
   return ret;
-
 }
-
-
 
 /***********************************************************************************/
 //Set threshold of each channel;
@@ -382,7 +372,8 @@ int madc_setThreshold(MVME_INTERFACE *vme, mvme_addr_t vme_addr, WORD *threshold
   mvme_set_am(vme, cvA32_S_DATA);
   mvme_set_dmode(vme, cvD16);
 
-  for (k = 0; k < MADC_MAX_CHANNELS ; k++) {
+  for (k = 0; k < MADC_MAX_CHANNELS; k++)
+  {
     ret = mvme_write_value(vme, vme_addr + MADC_THRES_BASE + k * 2, threshold + k);
     if (ret != cvSuccess)
       break;
@@ -420,7 +411,6 @@ int madc_BLT_Event_read(MVME_INTERFACE *vme, mvme_addr_t vme_addr, void *pdest, 
 
   return error_code;
 }
-
 
 /***********************************************************/
 //read events from MEB, return on BERR
@@ -525,9 +515,8 @@ int madc_start_acq(MVME_INTERFACE *vme, mvme_addr_t vme_addr)
   mvme_set_dmode(vme, cmode);
   mvme_set_am(vme, cam);
 
-//  madc_readfifo_reset(vme, 0);
+  //  madc_readfifo_reset(vme, 0);
   return ret;
-
 }
 
 /*************************************************************/
@@ -555,7 +544,6 @@ int madc_stop_acq(MVME_INTERFACE *vme, mvme_addr_t vme_addr)
   mvme_set_am(vme, cam);
 
   return ret;
-
 }
 
 /****************************************************************/
@@ -606,7 +594,6 @@ int madc_setIrq_vector(MVME_INTERFACE *vme, mvme_addr_t vme_addr, unsigned short
   mvme_set_am(vme, cam);
 
   return ret;
-
 }
 
 int madc_readfifo_reset(MVME_INTERFACE *vme, mvme_addr_t vme_addr)
@@ -631,7 +618,6 @@ int madc_readfifo_reset(MVME_INTERFACE *vme, mvme_addr_t vme_addr)
 
   return ret;
 }
-
 
 /***************************************************************/
 

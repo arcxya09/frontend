@@ -593,8 +593,9 @@ int read_madc()
     int error_code;
     unsigned int *p = adc_buf;
     static int nn = 0;
+    unsigned int tot_byte = 0;
     //  goto test;
-
+    // madc_get_data_len(vme, MCST_BASE, &tot_byte);
     do
     {
         nbyte = 0;
@@ -611,7 +612,7 @@ int read_madc()
         i++;
     } while (nbyte == readout_length * 4);
     if (i > 1)
-        printf("i=%d,test_num=%d,readout_length=%d\n", i, test_num, readout_length * 4);
+        printf("i=%d,test_num=%d, total=%d\n", i, test_num, tot_byte);
     return test_num;
 
     //OBtest:
@@ -1507,15 +1508,16 @@ int main(int argc, char *argv[])
 
     start_cmd_thread();
 
-    // printf("Input file name:\n");
-    // scanf("%s", file);
+    printf("Input file name:\n");
+    scanf("%s", file);
 
     // // input run number
-    // printf("Input run number: \n");
-    // scanf("%d", &run_num); run_num--;
+    printf("Input run number: \n");
+    scanf("%d", &run_num);
+    run_num--;
 
-    sprintf(file, "test");
-    run_num = 0;
+    // sprintf(file, "test");
+    // run_num = 0;
 
     // // printf("File name: %s\n", file);
     // printf("Run number: %d\n", run_num);

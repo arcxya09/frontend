@@ -13,8 +13,8 @@ static cvt_V1190_data *V1190_data;
 static cvt_V1190_data **V1190_pdata;
 
 //TDC trigger model parameters(in 25ns units)
-#define TRIGGER_MATCHING_WINDOW_WIDTH 800     //~~
-#define TRIGGER_MATCHING_WINDOW_OFFSET (-800) //~~
+#define TRIGGER_MATCHING_WINDOW_WIDTH 400     //~~
+#define TRIGGER_MATCHING_WINDOW_OFFSET (-400) //~~
 #define TRIGGER_MATCHING_EXTRA_SEARCH_MARGIN 10
 #define TRIGGER_MATCHING_REJECT_MARGIN 5
 

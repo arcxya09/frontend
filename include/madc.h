@@ -1,13 +1,12 @@
-#ifndef  __MADC_32_INCLUDE_H__
-#define  __MADC_32_INCLUDE_H__
+#ifndef __MADC_32_INCLUDE_H__
+#define __MADC_32_INCLUDE_H__
 
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <mvmestd.h>
 
-
-extern unsigned int * MADC_BASE;
+extern unsigned int *MADC_BASE;
 extern int N_MADC;
 
 // #define MADC_BASE0  0x00000000
@@ -23,54 +22,54 @@ extern int N_MADC;
 // #define MADC_BASEA  0x000a0000//~~
 // #define MADC_BASEB  0x000b0000//~~
 
-#define CBLT_BASE   0xAA000000
-#define MCST_BASE   0xBB000000
+#define CBLT_BASE 0xAA000000
+#define MCST_BASE 0xBB000000
 //#define MCST_BASE 0x00010000
-#define MADC_IRQ_VEC    0x00
-#define IRQ_LEVEL   1
+#define MADC_IRQ_VEC 0x00
+#define IRQ_LEVEL 1
 #define IRQ_THRESHOLD 1
 
-#define MADC_MAX_CHANNELS           32
-#define MADC_THRES_BASE             (0x4000)    //RW threshold address 0x4000 to 0x403f
-#define MADC_ADDRESS_SOURCE         (0x6000)    //RW
-#define MADC_ADDRESS_REG            (0x6002)    //RW
-#define MADC_SOFT_RESET             (0x6008)    //W
-#define MADC_FIRMWARE_REVISION      (0x600E)    //R
-#define MADC_IRQ_LEVEL              (0x6010)    //RW IRQ priority 1..7,0=IRQ off
-#define MADC_IRQ_VECTOR             (0x6012)    //RW IRQ return value
-#define MADC_IRQ_RESET              (0x6016)    //RW reset IRQ(for test)
-#define MADC_IRQ_THRESHOLD          (0x6018)    //RW default 1 
-#define MADC_MAX_TRANSFER_DATA      (0x601A) //RW 0:unlimited transfer,1:maxinum number is 2048
-#define MADC_BUFFER_DATA_LENGTH     (0x6030)    //R
-#define MADC_DATA_LEN_FORMAT        (0x6032)    //RW
-#define MADC_READOUT_RESET          (0x6034)    //W
-#define MADC_MULTIEVENT             (0x6036)    //RW
-#define MADC_MARKING_TYPE           (0x6038)    //RW
-#define MADC_START_ACQ              (0X603A)    //RW
-#define MADC_FIFO_RESET             (0x603C)    //W
-#define MADC_DATA_READY             (0x603E)    //R
-#define MADC_BANK_OPERATION         (0x6040)    //RW
-#define MADC_ADC_RESOLUTION         (0x6042)    //RW 0->2k,1->4k,3->8k
-#define MADC_OUTPUT_FORMAT          (0x6044)    //RW
-#define MADC_ADC_OVERRIDE           (0x6046)    //RW
-#define MADC_SLC_OFF                (0x6048)    //RW
-#define MADC_SKIP_OORANGE           (0x604A)    //RW
-#define MADC_INPUT_RANGE            (0x6060)    //RW 0->4v.1->10v,2->8v
-#define MADC_ECL_TERM               (0x6062)    //RW
-#define MADC_ECL_GAT1_OSC           (0x6064)    //RW
-#define MADC_ECL_FC_RES             (0x6066)    //RW
-#define MADC_ECL_BUSY               (0x6068)    //RW
-#define MADC_NIM_GAT1_OSC           (0x606A)    //RW
-#define MADC_NIM_FC_RESET           (0x606C)    //RW
-#define MADC_NIM_BUSY               (0x606E)    //RW
-#define MADC_PULSET_STATUS          (0x6070)    //RW
-#define MADC_RESET_CTR_AB           (0x6090)    //RW
-#define MADC_TS_SOURCE              (0x6096)
-#define MADC_ADC_BUSY_TIME_LO       (0x60A0)
-#define MADC_ADC_BUSY_TIME_HI       (0x60A2)
+#define MADC_MAX_CHANNELS 32
+#define MADC_THRES_BASE (0x4000)         //RW threshold address 0x4000 to 0x403f
+#define MADC_ADDRESS_SOURCE (0x6000)     //RW
+#define MADC_ADDRESS_REG (0x6002)        //RW
+#define MADC_SOFT_RESET (0x6008)         //W
+#define MADC_FIRMWARE_REVISION (0x600E)  //R
+#define MADC_IRQ_LEVEL (0x6010)          //RW IRQ priority 1..7,0=IRQ off
+#define MADC_IRQ_VECTOR (0x6012)         //RW IRQ return value
+#define MADC_IRQ_RESET (0x6016)          //RW reset IRQ(for test)
+#define MADC_IRQ_THRESHOLD (0x6018)      //RW default 1
+#define MADC_MAX_TRANSFER_DATA (0x601A)  //RW 0:unlimited transfer,1:maxinum number is 2048
+#define MADC_BUFFER_DATA_LENGTH (0x6030) //R
+#define MADC_DATA_LEN_FORMAT (0x6032)    //RW
+#define MADC_READOUT_RESET (0x6034)      //W
+#define MADC_MULTIEVENT (0x6036)         //RW
+#define MADC_MARKING_TYPE (0x6038)       //RW
+#define MADC_START_ACQ (0X603A)          //RW
+#define MADC_FIFO_RESET (0x603C)         //W
+#define MADC_DATA_READY (0x603E)         //R
+#define MADC_BANK_OPERATION (0x6040)     //RW
+#define MADC_ADC_RESOLUTION (0x6042)     //RW 0->2k,1->4k,3->8k
+#define MADC_OUTPUT_FORMAT (0x6044)      //RW
+#define MADC_ADC_OVERRIDE (0x6046)       //RW
+#define MADC_SLC_OFF (0x6048)            //RW
+#define MADC_SKIP_OORANGE (0x604A)       //RW
+#define MADC_INPUT_RANGE (0x6060)        //RW 0->4v.1->10v,2->8v
+#define MADC_ECL_TERM (0x6062)           //RW
+#define MADC_ECL_GAT1_OSC (0x6064)       //RW
+#define MADC_ECL_FC_RES (0x6066)         //RW
+#define MADC_ECL_BUSY (0x6068)           //RW
+#define MADC_NIM_GAT1_OSC (0x606A)       //RW
+#define MADC_NIM_FC_RESET (0x606C)       //RW
+#define MADC_NIM_BUSY (0x606E)           //RW
+#define MADC_PULSET_STATUS (0x6070)      //RW
+#define MADC_RESET_CTR_AB (0x6090)       //RW
+#define MADC_TS_SOURCE (0x6096)
+#define MADC_ADC_BUSY_TIME_LO (0x60A0)
+#define MADC_ADC_BUSY_TIME_HI (0x60A2)
 
-int  madc_get_buffer_length(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *buf_len);
-int  madc_isDataReady(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *ready);
+int madc_get_buffer_length(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *buf_len);
+int madc_isDataReady(MVME_INTERFACE *vme, mvme_addr_t vme_addr, int *ready);
 int madc_setInput_range(MVME_INTERFACE *vme, mvme_addr_t vme_addr, unsigned short range);
 int madc_setAdc_resolution(MVME_INTERFACE *vme, mvme_addr_t vme_addr, unsigned short resolution);
 int madc_setFifo_reset(MVME_INTERFACE *vme, mvme_addr_t vme_addr);
